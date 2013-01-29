@@ -11,8 +11,8 @@ type
 
   Tcommandline_results* = object
     ## Contains the results of the parsing.
-    files: seq[string]
-    options: TTable[string, string]
+    files*: seq[string]
+    options*: TTable[string, string]
 
 
 # - Tparameter_specification procs
@@ -31,18 +31,20 @@ proc new_parameter_specification*(single_word = "",
 
 # - Tcommandline_results procs
 
-proc init*(param: var Tcommandline_results; files: seq[string] = @[]) =
+proc init*(param: var Tcommandline_results; files: seq[string] = @[];
+    options: TTable[string, string] = initTable[string, string](4)) =
   # Initialization helper.
   param.files = files
-
-proc new_commandline_results*(files: seq[string]): Tcommandline_results =
-  # Initialization helper for let variables.
-  result.init(files)
+  param.options = options
 
 proc `$`*(data: Tcommandline_results): string =
   # Stringifies a Tcommandline_results structure for debug output
-  return "Tcommandline_result{files:$1}" % [join(
-    map(data.files) do (x: string) -> string: x.escape(), ", ")]
+  var dict: seq[string] = @[]
+  for key, value in data.options:
+    dict.add("$1: $2" % [key.escape(), value.escape()])
+  result = "Tcommandline_result{files:[$1], options:{$2}}" % [join(
+    map(data.files) do (x: string) -> string: x.escape(), ", "),
+    join(dict, ", ")]
 
 # - Parse code
 
@@ -82,7 +84,7 @@ proc parse*(expected: seq[Tparameter_specification],
   var i = 0
   while i < args.len:
     let arg = args[i]
-    echo "Arg ", $i, " value '", arg, "'"
+    #echo "Arg ", $i, " value '", arg, "'"
     if arg.len > 0:
       if lookup.hasKey(arg):
         let param = lookup[arg]
@@ -93,14 +95,17 @@ proc parse*(expected: seq[Tparameter_specification],
             next = args[i]
           else:
             quit("Parameter $1 requires value" % arg)
-        echo "\tFound ", arg, " ", next
+        #echo "\tFound ", arg, " ", next
+        result.options[arg] = next
       else:
         if arg[0] == '-':
           quit("Found unexpected parameter $1" % arg)
         else:
-          echo "Normal parameter"
+          #echo "Normal parameter"
+          result.files.add(arg)
     else:
-      echo "\tEmpty file parameter?"
+      #echo "\tEmpty file parameter?"
+      result.files.add(arg)
     i += 1
 
 when isMainModule:
