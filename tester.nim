@@ -2,7 +2,7 @@ import argument_parser, strutils
 
 when isMainModule:
   echo "Parsing default system params"
-  let p1 = new_parameter_specification(single_letter = 'a', consumes = true)
+  let p1 = new_parameter_specification(single_word = "a", consumes = true)
   let p2 = new_parameter_specification(double_word = "aasd", consumes = true)
   let ret1 = parse(@[p1, p2])
   echo ($ret1)
