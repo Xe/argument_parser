@@ -112,7 +112,8 @@ proc parse_parameter(param, value: string,
         escape(value)])
   of pkBiggestInt:
     try:
-      if value.len != parseBiggestInt(value, result.bigIntVal):
+      let parsed_len = parseBiggestInt(value, result.bigIntVal)
+      if value.len != parsed_len or parsed_len < 1:
         raise newException(EInvalidValue, ("parameter $1 requires an " &
           "integer, but $2 can't be parsed completely into one") % [
           escape(param), escape(value)])
@@ -122,7 +123,8 @@ proc parse_parameter(param, value: string,
         escape(value)])
   of pkBiggestFloat:
     try:
-      if value.len != parseBiggestFloat(value, result.bigFloatVal):
+      let parsed_len = parseBiggestFloat(value, result.bigFloatVal)
+      if value.len != parsed_len or parsed_len < 1:
         raise newException(EInvalidValue, ("parameter $1 requires a " &
           "float, but $2 can't be parsed completely into one") % [
           escape(param), escape(value)])
@@ -141,10 +143,10 @@ proc parse*(expected: seq[Tparameter_specification],
   var args = args
   if args == nil:
     let total_params = ParamCount()
-    echo "Got no explicit args, retrieving from OS. Count: ", total_params
+    #echo "Got no explicit args, retrieving from OS. Count: ", total_params
     newSeq(args, total_params)
     for i in 0..total_params - 1:
-      echo ($i)
+      #echo ($i)
       args[i] = paramStr(i + 1)
 
   # Generate lookup table for each type of parameter based on strings.
