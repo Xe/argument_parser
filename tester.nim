@@ -6,12 +6,24 @@ template test_failure(exception, code: expr): stmt =
     discard(code)
     echo "Unit test failure at $1:$2 with '$3'" % [pos.filename,
       $pos.line, astToStr(code)]
-    assert false, "A test expecting failure succeeded?"
+    doAssert false, "A test expecting failure succeeded?"
   except exception:
     nil
 
 #template test_success(code: expr) {.immediate.} = echo($code)
 template test_success(code: expr) {.immediate.} = discard(code)
+
+template test_in(commandline_parameters, expected_value, attribute: expr):
+    expr {.immediate.} =
+  ## Returns true if the expected value is found in the commandline parameters.
+  ##
+  ## Pass the attribute to check in the Tparsed_parameter object.
+  var result {.gensym.}: bool = false
+  for parameter in commandline_parameters.positional_parameters:
+    if parameter.attribute == expected_value:
+      result = true
+      break
+  result
 
 proc test() =
   #echo "\nParsing default system params"
@@ -28,52 +40,80 @@ proc test() =
 
   discard(parse(all_params))
 
-  let args = @["test", "toca me la", "-a", "-wo", "rd", "--aasd", "--s"]
+  let args = @["test", "toca me la", "-a", "-wo", "rd", "--aasd", "--s", "ugh"]
   #echo "\nParsing ", join(args, " ")
-  let ret2 = parse(all_params, args)
+  let ret2 = parse(all_params, args = args)
   #echo($ret2)
-  assert ret2.options["-a"].strVal == "-wo"
-  assert (not ret2.options.hasKey("test"))
-  assert "test" in ret2.files
+  doAssert ret2.options["-a"].strVal == "-wo"
+  doAssert ret2.options.hasKey("test") == false
+  doAssert test_in(ret2, "test", str_val)
+  doAssert test_in(ret2, "--s", str_val) == false
+  doAssert test_in(ret2, "ugh", str_val)
+  test_failure(EInvalidValue, parse(all_params, PK_INT, args))
 
   # Integer tests.
-  test_success(parse(all_params, @["int test", "-i", "445"]))
-  test_success(parse(all_params, @["int test", "-i", "-445"]))
-  test_failure(EInvalidValue, parse(all_params, @["-i", ""]))
-  test_failure(EInvalidValue, parse(all_params, @["-i", "0x02"]))
-  test_failure(EInvalidValue, parse(all_params, @["-i", "fail"]))
-  test_failure(EInvalidValue, parse(all_params, @["-i", "234.12"]))
-  test_failure(EOverflow, parse(all_params, @["-i", $high(int) & "0"]))
+  test_success(parse(all_params, args = @["int test", "-i", "445"]))
+  test_success(parse(all_params, args = @["int test", "-i", "-445"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-i", ""]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-i", "0x02"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-i", "fail"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-i", "234.12"]))
+  test_failure(EOverflow, parse(all_params, args = @["-i", $high(int) & "0"]))
+  test_success(parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4"]))
+  test_failure(EInvalidValue,
+    parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4.3"]))
+  let ret_int = parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4"])
+  doAssert ret_int.options["-i"].int_val == -445
+  doAssert test_in(ret_int, 2, int_val)
+  doAssert test_in(ret_int, 3, int_val)
+  doAssert test_in(ret_int, 4, int_val)
+  doAssert test_in(ret_int, 5, int_val) == false
 
   # String tests.
-  test_success(parse(all_params, @["str test", "-a", "word"]))
-  test_success(parse(all_params, @["str empty test", "-a", ""]))
-  test_failure(EInvalidValue, parse(all_params, @["str test", "-a"]))
+  test_success(parse(all_params, args = @["str test", "-a", "word"]))
+  test_success(parse(all_params, args = @["str empty test", "-a", ""]))
+  test_failure(EInvalidValue, parse(all_params, args = @["str test", "-a"]))
 
   # Float tests.
-  test_success(parse(all_params, @["-f", "123.235"]))
-  test_failure(EInvalidValue, parse(all_params, @["-f", ""]))
-  test_failure(EInvalidValue, parse(all_params, @["-f", "abracadabra"]))
-  test_failure(EInvalidValue, parse(all_params, @["-f", "12.34aadd"]))
+  test_success(parse(all_params, args = @["-f", "123.235"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-f", ""]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-f", "abracadabra"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-f", "12.34aadd"]))
+  let ret_float = parse(all_params, PK_FLOAT, @["-f", "12.23", "89.2", "3.14"])
+  doAssert ret_float.options["-f"].float_val == 12.23
+  doAssert test_in(ret_float, 89.2, float_val)
+  doAssert test_in(ret_float, 3.14, float_val)
+  doAssert test_in(ret_float, 3.1, float_val) == false
 
   # Boolean tests.
   for param in @["y", "yes", "true", "1", "on", "n", "no", "false", "0", "off"]:
-    test_success(parse(all_params, @["-b", param]))
-  test_failure(EInvalidValue, parse(all_params, @["-b", "t"]))
-  test_failure(EInvalidValue, parse(all_params, @["-b", ""]))
+    test_success(parse(all_params, args = @["-b", param]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-b", "t"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-b", ""]))
+  doAssert test_in(parse(all_params, PK_BOOL, @["y"]), true, bool_val)
+  doAssert test_in(parse(all_params, PK_BOOL, @["0"]), false, bool_val)
 
   # Big integer tests.
-  test_success(parse(all_params, @["int test", "-I", "445"]))
-  test_failure(EInvalidValue, parse(all_params, @["-I", ""]))
-  test_failure(EInvalidValue, parse(all_params, @["-I", "fail"]))
-  test_failure(EInvalidValue, parse(all_params, @["-I", "234.12"]))
-  test_failure(EOverflow, parse(all_params, @["-I", $high(biggestInt) & "0"]))
+  test_success(parse(all_params, args = @["int test", "-I", "445"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-I", ""]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-I", "fail"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-I", "234.12"]))
+  test_failure(EOverflow, parse(all_params,
+    args = @["-I", $high(biggestInt) & "0"]))
+  let ret_bigint = parse(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
+  doAssert test_in(ret_bigint, 42, big_int_val)
+  doAssert test_in(ret_bigint, high(biggestInt), big_int_val)
+  doAssert test_in(ret_bigint, 13, big_int_val) == false
 
   # Big float tests.
-  test_success(parse(all_params, @["-F", "123.235"]))
-  test_failure(EInvalidValue, parse(all_params, @["-F", ""]))
-  test_failure(EInvalidValue, parse(all_params, @["-F", "abracadabra"]))
-  test_failure(EInvalidValue, parse(all_params, @["-F", "12.34aadd"]))
+  test_success(parse(all_params, args = @["-F", "123.235"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-F", ""]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-F", "abracadabra"]))
+  test_failure(EInvalidValue, parse(all_params, args = @["-F", "12.34aadd"]))
+  let ret_bigfloat = parse(all_params, PK_BIGGEST_FLOAT, @["111.111", "9.01"])
+  doAssert test_in(ret_bigfloat, 111.111, big_float_val)
+  doAssert test_in(ret_bigfloat, 9.01, big_float_val)
+  doAssert test_in(ret_bigfloat, 9.02, big_float_val) == false
 
   echo "Tester finished"
 

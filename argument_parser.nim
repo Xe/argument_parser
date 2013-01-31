@@ -19,13 +19,13 @@ type
     of PK_INT: int_val*: int
     of PK_BIGGEST_INT: big_int_val*: biggestInt
     of PK_FLOAT: float_val*: float
-    of PK_BIGGEST_FLOAT: big_float_val: biggestFloat
+    of PK_BIGGEST_FLOAT: big_float_val*: biggestFloat
     of PK_STRING: str_val*: string
     of PK_BOOL: bool_val*: bool
 
   Tcommandline_results* = object
     ## Contains the results of the parsing.
-    files*: seq[string]
+    positional_parameters*: seq[Tparsed_parameter]
     options*: TTable[string, Tparsed_parameter]
 
 
@@ -45,7 +45,7 @@ proc new_parameter_specification*(single_word = "",
 
 # - Tparsed_parameter procs
 
-proc `$`*(data: Tparsed_parameter): string =
+proc `$`*(data: Tparsed_parameter): string {.procvar.} =
   # Stringifies the value.
   case data.kind:
   of PK_EMPTY: result = "nil"
@@ -58,11 +58,12 @@ proc `$`*(data: Tparsed_parameter): string =
 
 # - Tcommandline_results procs
 
-proc init*(param: var Tcommandline_results; files: seq[string] = @[];
+proc init*(param: var Tcommandline_results;
+    positional_parameters: seq[Tparsed_parameter] = @[];
     options: TTable[string, Tparsed_parameter] =
       initTable[string, Tparsed_parameter](4)) =
   # Initialization helper.
-  param.files = files
+  param.positional_parameters = positional_parameters
   param.options = options
 
 proc `$`*(data: Tcommandline_results): string =
@@ -70,9 +71,8 @@ proc `$`*(data: Tcommandline_results): string =
   var dict: seq[string] = @[]
   for key, value in data.options:
     dict.add("$1: $2" % [escape(key), escape($value)])
-  result = "Tcommandline_result{files:[$1], options:{$2}}" % [join(
-    map(data.files) do (x: string) -> string: x.escape(), ", "),
-    join(dict, ", ")]
+  result = "Tcommandline_result{positional_parameters:[$1], options:{$2}}" % [
+    join(map(data.positional_parameters, `$`), ", "), join(dict, ", ")]
 
 # - Parse code
 
@@ -89,54 +89,52 @@ proc parse_parameter(param, value: string,
     try: result.int_val = value.parseInt
     except EOverflow:
       raise newException(EOverflow, ("parameter $1 requires an " &
-        "integer, but $2 is too large to fit into one") % [escape(param),
+        "integer, but $2 is too large to fit into one") % [param,
         escape(value)])
     except EInvalidValue:
       raise newException(EInvalidValue, ("parameter $1 requires an " &
-        "integer, but $2 can't be parsed into one") % [escape(param),
-        escape(value)])
+        "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_STRING:
     result.str_val = value
   of PK_FLOAT:
     try: result.float_val = value.parseFloat
     except EInvalidValue:
       raise newException(EInvalidValue, ("parameter $1 requires a " &
-        "float, but $2 can't be parsed into one") % [escape(param),
-        escape(value)])
+        "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BOOL:
     try: result.bool_val = value.parseBool
     except EInvalidValue:
       raise newException(EInvalidValue, ("parameter $1 requires a " &
         "boolean, but $2 can't be parsed into one. Valid values are: " &
-        "y, yes, true, 1, on, n, no, false, 0, off") % [escape(param),
-        escape(value)])
+        "y, yes, true, 1, on, n, no, false, 0, off") % [param, escape(value)])
   of PK_BIGGEST_INT:
     try:
       let parsed_len = parseBiggestInt(value, result.big_int_val)
       if value.len != parsed_len or parsed_len < 1:
         raise newException(EInvalidValue, ("parameter $1 requires an " &
           "integer, but $2 can't be parsed completely into one") % [
-          escape(param), escape(value)])
+          param, escape(value)])
     except EInvalidValue:
       raise newException(EInvalidValue, ("parameter $1 requires an " &
-        "integer, but $2 can't be parsed into one") % [escape(param),
-        escape(value)])
+        "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BIGGEST_FLOAT:
     try:
       let parsed_len = parseBiggestFloat(value, result.big_float_val)
       if value.len != parsed_len or parsed_len < 1:
         raise newException(EInvalidValue, ("parameter $1 requires a " &
           "float, but $2 can't be parsed completely into one") % [
-          escape(param), escape(value)])
+          param, escape(value)])
     except EInvalidValue:
       raise newException(EInvalidValue, ("parameter $1 requires a " &
-        "float, but $2 can't be parsed into one") % [escape(param),
-        escape(value)])
+        "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_EMPTY:
     nil
 
 proc parse*(expected: seq[Tparameter_specification],
+    type_of_positional_parameters = PK_STRING,
     args: seq[TaintedString] = nil): Tcommandline_results =
+
+  assert type_of_positional_parameters != PK_EMPTY
   var expected = expected
   result.init()
   # Prepare the input parameter list, maybe get it from the OS if not available.
@@ -183,7 +181,7 @@ proc parse*(expected: seq[Tparameter_specification],
             i += 1
           else:
             raise newException(EInvalidValue, ("parameter $1 requires a " &
-              "value, but none was provided") % [escape(arg)])
+              "value, but none was provided") % [arg])
         #echo "\tFound ", arg, " ", next
         result.options[arg] = parsed
       else:
@@ -191,10 +189,13 @@ proc parse*(expected: seq[Tparameter_specification],
           quit("Found unexpected parameter $1" % arg)
         else:
           #echo "Normal parameter"
-          result.files.add(arg)
+          result.positional_parameters.add(parse_parameter($(1 + i), arg,
+            type_of_positional_parameters))
     else:
       #echo "\tEmpty file parameter?"
-      result.files.add(arg)
+      result.positional_parameters.add(parse_parameter($(1 + i), arg,
+        type_of_positional_parameters))
+
     i += 1
 
 
