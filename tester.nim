@@ -25,6 +25,13 @@ template test_in(commandline_parameters, expected_value, attribute: expr):
       break
   result
 
+template tp(expected: seq[Tparameter_specification] = @[],
+    type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil):
+      expr =
+  # Simple wrapper to avoid changing the last default parameter.
+  parse(expected, type_of_positional_parameters, args,
+    quit_on_failure = false)
+
 proc test() =
   #echo "\nParsing default system params"
   let
@@ -38,31 +45,31 @@ proc test() =
       consumes = pkBiggestFloat)
     all_params = @[p1, p2, p3, p4, p5, p6, p7]
 
-  discard(parse(all_params))
+  discard(tp(all_params))
 
   let args = @["test", "toca me la", "-a", "-wo", "rd", "--aasd", "--s", "ugh"]
   #echo "\nParsing ", join(args, " ")
-  let ret2 = parse(all_params, args = args)
+  let ret2 = tp(all_params, args = args)
   #echo($ret2)
   doAssert ret2.options["-a"].strVal == "-wo"
   doAssert ret2.options.hasKey("test") == false
   doAssert test_in(ret2, "test", str_val)
   doAssert test_in(ret2, "--s", str_val) == false
   doAssert test_in(ret2, "ugh", str_val)
-  test_failure(EInvalidValue, parse(all_params, PK_INT, args))
+  test_failure(EInvalidValue, tp(all_params, PK_INT, args))
 
   # Integer tests.
-  test_success(parse(all_params, args = @["int test", "-i", "445"]))
-  test_success(parse(all_params, args = @["int test", "-i", "-445"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-i", ""]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-i", "0x02"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-i", "fail"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-i", "234.12"]))
-  test_failure(EOverflow, parse(all_params, args = @["-i", $high(int) & "0"]))
-  test_success(parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4"]))
+  test_success(tp(all_params, args = @["int test", "-i", "445"]))
+  test_success(tp(all_params, args = @["int test", "-i", "-445"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-i", ""]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-i", "0x02"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-i", "fail"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-i", "234.12"]))
+  test_failure(EOverflow, tp(all_params, args = @["-i", $high(int) & "0"]))
+  test_success(tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4"]))
   test_failure(EInvalidValue,
-    parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4.3"]))
-  let ret_int = parse(all_params, PK_INT, @["-i", "-445", "2", "3", "4"])
+    tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4.3"]))
+  let ret_int = tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4"])
   doAssert ret_int.options["-i"].int_val == -445
   doAssert test_in(ret_int, 2, int_val)
   doAssert test_in(ret_int, 3, int_val)
@@ -70,16 +77,16 @@ proc test() =
   doAssert test_in(ret_int, 5, int_val) == false
 
   # String tests.
-  test_success(parse(all_params, args = @["str test", "-a", "word"]))
-  test_success(parse(all_params, args = @["str empty test", "-a", ""]))
-  test_failure(EInvalidValue, parse(all_params, args = @["str test", "-a"]))
+  test_success(tp(all_params, args = @["str test", "-a", "word"]))
+  test_success(tp(all_params, args = @["str empty test", "-a", ""]))
+  test_failure(EInvalidValue, tp(all_params, args = @["str test", "-a"]))
 
   # Float tests.
-  test_success(parse(all_params, args = @["-f", "123.235"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-f", ""]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-f", "abracadabra"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-f", "12.34aadd"]))
-  let ret_float = parse(all_params, PK_FLOAT, @["-f", "12.23", "89.2", "3.14"])
+  test_success(tp(all_params, args = @["-f", "123.235"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-f", ""]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-f", "abracadabra"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-f", "12.34aadd"]))
+  let ret_float = tp(all_params, PK_FLOAT, @["-f", "12.23", "89.2", "3.14"])
   doAssert ret_float.options["-f"].float_val == 12.23
   doAssert test_in(ret_float, 89.2, float_val)
   doAssert test_in(ret_float, 3.14, float_val)
@@ -87,30 +94,30 @@ proc test() =
 
   # Boolean tests.
   for param in @["y", "yes", "true", "1", "on", "n", "no", "false", "0", "off"]:
-    test_success(parse(all_params, args = @["-b", param]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-b", "t"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-b", ""]))
-  doAssert test_in(parse(all_params, PK_BOOL, @["y"]), true, bool_val)
-  doAssert test_in(parse(all_params, PK_BOOL, @["0"]), false, bool_val)
+    test_success(tp(all_params, args = @["-b", param]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-b", "t"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-b", ""]))
+  doAssert test_in(tp(all_params, PK_BOOL, @["y"]), true, bool_val)
+  doAssert test_in(tp(all_params, PK_BOOL, @["0"]), false, bool_val)
 
   # Big integer tests.
-  test_success(parse(all_params, args = @["int test", "-I", "445"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-I", ""]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-I", "fail"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-I", "234.12"]))
-  test_failure(EOverflow, parse(all_params,
+  test_success(tp(all_params, args = @["int test", "-I", "445"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-I", ""]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-I", "fail"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-I", "234.12"]))
+  test_failure(EOverflow, tp(all_params,
     args = @["-I", $high(biggestInt) & "0"]))
-  let ret_bigint = parse(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
+  let ret_bigint = tp(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
   doAssert test_in(ret_bigint, 42, big_int_val)
   doAssert test_in(ret_bigint, high(biggestInt), big_int_val)
   doAssert test_in(ret_bigint, 13, big_int_val) == false
 
   # Big float tests.
-  test_success(parse(all_params, args = @["-F", "123.235"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-F", ""]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-F", "abracadabra"]))
-  test_failure(EInvalidValue, parse(all_params, args = @["-F", "12.34aadd"]))
-  let ret_bigfloat = parse(all_params, PK_BIGGEST_FLOAT, @["111.111", "9.01"])
+  test_success(tp(all_params, args = @["-F", "123.235"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-F", ""]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-F", "abracadabra"]))
+  test_failure(EInvalidValue, tp(all_params, args = @["-F", "12.34aadd"]))
+  let ret_bigfloat = tp(all_params, PK_BIGGEST_FLOAT, @["111.111", "9.01"])
   doAssert test_in(ret_bigfloat, 111.111, big_float_val)
   doAssert test_in(ret_bigfloat, 9.01, big_float_val)
   doAssert test_in(ret_bigfloat, 9.02, big_float_val) == false

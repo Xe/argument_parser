@@ -76,7 +76,13 @@ proc `$`*(data: Tcommandline_results): string =
 
 # - Parse code
 
-proc parse_parameter(param, value: string,
+template quit_or_raise(exception, message: expr): stmt {.immediate.} =
+  if quit_on_failure:
+    quit(message)
+  else:
+    raise newException(exception, message)
+
+proc parse_parameter(quit_on_failure: bool, param, value: string,
     param_kind: Tparam_kind): Tparsed_parameter =
   ## Tries to parse a text according to the specified type.
   ##
@@ -88,55 +94,72 @@ proc parse_parameter(param, value: string,
   of PK_INT:
     try: result.int_val = value.parseInt
     except EOverflow:
-      raise newException(EOverflow, ("parameter $1 requires an " &
+      quit_or_raise(EOverflow, ("parameter $1 requires an " &
         "integer, but $2 is too large to fit into one") % [param,
         escape(value)])
     except EInvalidValue:
-      raise newException(EInvalidValue, ("parameter $1 requires an " &
+      quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
         "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_STRING:
     result.str_val = value
   of PK_FLOAT:
     try: result.float_val = value.parseFloat
     except EInvalidValue:
-      raise newException(EInvalidValue, ("parameter $1 requires a " &
+      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BOOL:
     try: result.bool_val = value.parseBool
     except EInvalidValue:
-      raise newException(EInvalidValue, ("parameter $1 requires a " &
+      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
         "boolean, but $2 can't be parsed into one. Valid values are: " &
         "y, yes, true, 1, on, n, no, false, 0, off") % [param, escape(value)])
   of PK_BIGGEST_INT:
     try:
       let parsed_len = parseBiggestInt(value, result.big_int_val)
       if value.len != parsed_len or parsed_len < 1:
-        raise newException(EInvalidValue, ("parameter $1 requires an " &
+        quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
           "integer, but $2 can't be parsed completely into one") % [
           param, escape(value)])
     except EInvalidValue:
-      raise newException(EInvalidValue, ("parameter $1 requires an " &
+      quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
         "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BIGGEST_FLOAT:
     try:
       let parsed_len = parseBiggestFloat(value, result.big_float_val)
       if value.len != parsed_len or parsed_len < 1:
-        raise newException(EInvalidValue, ("parameter $1 requires a " &
+        quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
           "float, but $2 can't be parsed completely into one") % [
           param, escape(value)])
     except EInvalidValue:
-      raise newException(EInvalidValue, ("parameter $1 requires a " &
+      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_EMPTY:
     nil
 
-proc parse*(expected: seq[Tparameter_specification],
-    type_of_positional_parameters = PK_STRING,
-    args: seq[TaintedString] = nil): Tcommandline_results =
+proc parse*(expected: seq[Tparameter_specification] = @[],
+    type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
+    quit_on_failure = true): Tcommandline_results =
+  ## Parses parameters and returns results.
+  ##
+  ## The expected array should contain a list of the dash parameters you want
+  ## to detect, which can have additional values. Non dash parameters are
+  ## considered positional parameters for which you can specify a type with
+  ## type_of_positional_parameters.
+  ##
+  ## The args sequence should be the list of parameters passed to your program
+  ## without the program binary (usually OSes provide the path to the binary as
+  ## the zeroth parameter). If args is nil, the list will be retrieved from the
+  ## OS.
+  ##
+  ## If there is any kind of error and quit_on_failure is true, the quit proc
+  ## will be called with a user error message. If quit_on_failure is false
+  ## errors will raise exceptions (usually EInvalidValue or EOverflow) instead
+  ## for you to catch and handle.
 
   assert type_of_positional_parameters != PK_EMPTY
   var expected = expected
   result.init()
+
   # Prepare the input parameter list, maybe get it from the OS if not available.
   var args = args
   if args == nil:
@@ -155,14 +178,18 @@ proc parse*(expected: seq[Tparameter_specification],
       parameter_specification = expected[i]
       single_switch = "-" & parameter_specification.single_word
       double_switch = "--" & parameter_specification.double_word
+
     if single_switch.len > 1:
       if lookup.hasKey(single_switch):
-        quit("Parameter $1 repeated in input specification" % single_switch)
+        quit_or_raise(EInvalidKey,
+          "Parameter $1 repeated in input specification" % single_switch)
       else:
         lookup[single_switch] = addr(expected[i])
+
     if double_switch.len > 2:
       if lookup.hasKey(double_switch):
-        quit("Parameter $1 repeated in input specification" % double_switch)
+        quit_or_raise(EInvalidKey,
+          "Parameter $1 repeated in input specification" % double_switch)
       else:
         lookup[double_switch] = addr(expected[i])
 
@@ -177,7 +204,8 @@ proc parse*(expected: seq[Tparameter_specification],
         let param = lookup[arg]
         if param.consumes != PK_EMPTY:
           if i + 1 < args.len:
-            parsed = parse_parameter(arg, args[i + 1], param.consumes)
+            parsed = parse_parameter(quit_on_failure,
+              arg, args[i + 1], param.consumes)
             i += 1
           else:
             raise newException(EInvalidValue, ("parameter $1 requires a " &
@@ -186,15 +214,15 @@ proc parse*(expected: seq[Tparameter_specification],
         result.options[arg] = parsed
       else:
         if arg[0] == '-':
-          quit("Found unexpected parameter $1" % arg)
+          quit_or_raise(EInvalidValue, "Found unexpected parameter $1" % arg)
         else:
           #echo "Normal parameter"
-          result.positional_parameters.add(parse_parameter($(1 + i), arg,
-            type_of_positional_parameters))
+          result.positional_parameters.add(parse_parameter(quit_on_failure,
+            $(1 + i), arg, type_of_positional_parameters))
     else:
       #echo "\tEmpty file parameter?"
-      result.positional_parameters.add(parse_parameter($(1 + i), arg,
-        type_of_positional_parameters))
+      result.positional_parameters.add(parse_parameter(quit_on_failure,
+        $(1 + i), arg, type_of_positional_parameters))
 
     i += 1
 
