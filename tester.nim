@@ -122,6 +122,20 @@ proc test() =
   doAssert test_in(ret_bigfloat, 9.01, big_float_val)
   doAssert test_in(ret_bigfloat, 9.02, big_float_val) == false
 
+  # Using custom procs for transformation of type back to string.
+  var c1 = new_parameter_specification(single_word = "i", consumes = PK_INT)
+  c1.custom_validator =
+    proc (parameter: string, value: var Tparsed_parameter): string =
+      echo "Hey there debug $1, parsed $2" % [parameter, $value]
+      var new_value : Tparsed_parameter
+      new_value.kind = PK_STRING
+      new_value.str_val = $value.int_val
+      value = new_value
+      echo ($value)
+      result = ""
+  let ret_c1 = tp(@[c1], args = @["-i", "42"])
+  echo ($ret_c1)
+  doAssert ret_c1.options["-i"].str_val == "42"
   echo "Tester finished"
 
 when isMainModule:

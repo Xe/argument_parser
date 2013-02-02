@@ -7,11 +7,15 @@ type
   Tparam_kind* = enum PK_EMPTY, PK_INT, PK_FLOAT, PK_STRING, PK_BOOL,
     PK_BIGGEST_INT, PK_BIGGEST_FLOAT
 
+  Tparameter_callback* =
+    proc (parameter: string; value: var Tparsed_parameter): string
+
   Tparameter_specification* = object
     ## Holds the expectations of a parameter.
-    single_word: string
-    double_word: string
-    consumes: Tparam_kind
+    single_word*: string
+    double_word*: string
+    consumes*: Tparam_kind
+    custom_validator*: Tparameter_callback
 
   Tparsed_parameter* = object
     case kind*: Tparam_kind
@@ -32,16 +36,19 @@ type
 # - Tparameter_specification procs
 
 proc init*(param: var Tparameter_specification,
-    single_word = "", double_word = "", consumes = PK_EMPTY) =
+    single_word : string, double_word = "", consumes = PK_EMPTY,
+    custom_validator : Tparameter_callback = nil) =
   # Initialization helper.
   param.single_word = single_word
   param.double_word = double_word
   param.consumes = consumes
+  param.custom_validator = custom_validator
 
 proc new_parameter_specification*(single_word = "",
-    double_word = "", consumes = PK_EMPTY): Tparameter_specification =
+    double_word = "", consumes = PK_EMPTY,
+    custom_validator : Tparameter_callback = nil): Tparameter_specification =
   # Initialization helper for let variables.
-  result.init(single_word, double_word, consumes)
+  result.init(single_word, double_word, consumes, custom_validator)
 
 # - Tparsed_parameter procs
 
@@ -53,8 +60,20 @@ proc `$`*(data: Tparsed_parameter): string {.procvar.} =
   of PK_BIGGEST_INT: result = $data.big_int_val
   of PK_FLOAT: result = $data.float_val
   of PK_BIGGEST_FLOAT: result = $data.big_float_val
-  of PK_STRING: result = $data.str_val
+  of PK_STRING: result = "\"" & $data.str_val & "\""
   of PK_BOOL: result = $data.bool_val
+
+template new_parsed_parameter*(kind: Tparam_kind, expr): Tparsed_parameter =
+  case kind:
+  of PK_EMPTY: result.kind = PK_EMPTY
+  of PK_INT:
+    result.kind = PK_INT
+    result.int_val = expr
+  of PK_STRING:
+    result.kind = PK_STRING
+    result.str_val = expr
+  else:
+    result.kind = PK_EMPTY
 
 # - Tcommandline_results procs
 
@@ -70,17 +89,33 @@ proc `$`*(data: Tcommandline_results): string =
   # Stringifies a Tcommandline_results structure for debug output
   var dict: seq[string] = @[]
   for key, value in data.options:
-    dict.add("$1: $2" % [escape(key), escape($value)])
+    dict.add("$1: $2" % [escape(key), $value])
   result = "Tcommandline_result{positional_parameters:[$1], options:{$2}}" % [
     join(map(data.positional_parameters, `$`), ", "), join(dict, ", ")]
 
 # - Parse code
 
-template quit_or_raise(exception, message: expr): stmt {.immediate.} =
+template raise_or_quit(exception, message: expr): stmt {.immediate.} =
+  ## Avoids repeating if check based on the default quit_on_failure variable.
   if quit_on_failure:
     quit(message)
   else:
     raise newException(exception, message)
+
+template run_custom_proc(parsed_parameter: Tparsed_parameter,
+    custom_validator: Tparameter_callback,
+    parameter: TaintedString) =
+  ## Runs the custom validator if it is not nil.
+  ##
+  ## Pass in the string of the parameter triggering the call. If the
+  if not custom_validator.isNil:
+    except:
+      raise_or_quit(EInvalidValue, ("Couldn't run custom proc for " &
+        "parameter $1 due to $2" % [escape(parameter),
+        getCurrentExceptionMsg()]))
+    let message = custom_validator(parameter, parsed_parameter)
+    if not message.isNil and message.len > 0:
+      raise_or_quit(EInvalidValue, message)
 
 proc parse_parameter(quit_on_failure: bool, param, value: string,
     param_kind: Tparam_kind): Tparsed_parameter =
@@ -94,44 +129,44 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
   of PK_INT:
     try: result.int_val = value.parseInt
     except EOverflow:
-      quit_or_raise(EOverflow, ("parameter $1 requires an " &
+      raise_or_quit(EOverflow, ("parameter $1 requires an " &
         "integer, but $2 is too large to fit into one") % [param,
         escape(value)])
     except EInvalidValue:
-      quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
+      raise_or_quit(EInvalidValue, ("parameter $1 requires an " &
         "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_STRING:
     result.str_val = value
   of PK_FLOAT:
     try: result.float_val = value.parseFloat
     except EInvalidValue:
-      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
+      raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BOOL:
     try: result.bool_val = value.parseBool
     except EInvalidValue:
-      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
+      raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
         "boolean, but $2 can't be parsed into one. Valid values are: " &
         "y, yes, true, 1, on, n, no, false, 0, off") % [param, escape(value)])
   of PK_BIGGEST_INT:
     try:
       let parsed_len = parseBiggestInt(value, result.big_int_val)
       if value.len != parsed_len or parsed_len < 1:
-        quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
+        raise_or_quit(EInvalidValue, ("parameter $1 requires an " &
           "integer, but $2 can't be parsed completely into one") % [
           param, escape(value)])
     except EInvalidValue:
-      quit_or_raise(EInvalidValue, ("parameter $1 requires an " &
+      raise_or_quit(EInvalidValue, ("parameter $1 requires an " &
         "integer, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_BIGGEST_FLOAT:
     try:
       let parsed_len = parseBiggestFloat(value, result.big_float_val)
       if value.len != parsed_len or parsed_len < 1:
-        quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
+        raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
           "float, but $2 can't be parsed completely into one") % [
           param, escape(value)])
     except EInvalidValue:
-      quit_or_raise(EInvalidValue, ("parameter $1 requires a " &
+      raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_EMPTY:
     nil
@@ -181,14 +216,14 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
 
     if single_switch.len > 1:
       if lookup.hasKey(single_switch):
-        quit_or_raise(EInvalidKey,
+        raise_or_quit(EInvalidKey,
           "Parameter $1 repeated in input specification" % single_switch)
       else:
         lookup[single_switch] = addr(expected[i])
 
     if double_switch.len > 2:
       if lookup.hasKey(double_switch):
-        quit_or_raise(EInvalidKey,
+        raise_or_quit(EInvalidKey,
           "Parameter $1 repeated in input specification" % double_switch)
       else:
         lookup[double_switch] = addr(expected[i])
@@ -206,6 +241,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
           if i + 1 < args.len:
             parsed = parse_parameter(quit_on_failure,
               arg, args[i + 1], param.consumes)
+            run_custom_proc(parsed, param.custom_validator, arg)
             i += 1
           else:
             raise newException(EInvalidValue, ("parameter $1 requires a " &
@@ -214,7 +250,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
         result.options[arg] = parsed
       else:
         if arg[0] == '-':
-          quit_or_raise(EInvalidValue, "Found unexpected parameter $1" % arg)
+          raise_or_quit(EInvalidValue, "Found unexpected parameter $1" % arg)
         else:
           #echo "Normal parameter"
           result.positional_parameters.add(parse_parameter(quit_on_failure,
