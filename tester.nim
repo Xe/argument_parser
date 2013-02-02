@@ -127,12 +127,8 @@ proc test() =
   c1.custom_validator =
     proc (parameter: string, value: var Tparsed_parameter): string =
       echo "Hey there debug $1, parsed $2" % [parameter, $value]
-      var new_value : Tparsed_parameter
-      new_value.kind = PK_STRING
-      new_value.str_val = $value.int_val
-      value = new_value
-      echo ($value)
-      result = ""
+      value = new_parsed_parameter(PK_STRING, $value.int_val)
+
   let ret_c1 = tp(@[c1], args = @["-i", "42"])
   echo ($ret_c1)
   doAssert ret_c1.options["-i"].str_val == "42"

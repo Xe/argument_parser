@@ -53,27 +53,28 @@ proc new_parameter_specification*(single_word = "",
 # - Tparsed_parameter procs
 
 proc `$`*(data: Tparsed_parameter): string {.procvar.} =
-  # Stringifies the value.
+  # Stringifies the value, mostly for debug purposes.
   case data.kind:
   of PK_EMPTY: result = "nil"
-  of PK_INT: result = $data.int_val
-  of PK_BIGGEST_INT: result = $data.big_int_val
-  of PK_FLOAT: result = $data.float_val
-  of PK_BIGGEST_FLOAT: result = $data.big_float_val
+  of PK_INT: result = "$1(i)" % $data.int_val
+  of PK_BIGGEST_INT: result = "$1(I)" % $data.big_int_val
+  of PK_FLOAT: result = "$1(f)" % $data.float_val
+  of PK_BIGGEST_FLOAT: result = "$1(F)" % $data.big_float_val
   of PK_STRING: result = "\"" & $data.str_val & "\""
-  of PK_BOOL: result = $data.bool_val
+  of PK_BOOL: result = "$1(b)" % $data.bool_val
 
-template new_parsed_parameter*(kind: Tparam_kind, expr): Tparsed_parameter =
-  case kind:
-  of PK_EMPTY: result.kind = PK_EMPTY
-  of PK_INT:
-    result.kind = PK_INT
-    result.int_val = expr
-  of PK_STRING:
-    result.kind = PK_STRING
-    result.str_val = expr
-  else:
-    result.kind = PK_EMPTY
+template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
+  var result {.gensym.}: Tparsed_parameter
+  result.kind = tkind
+  when tkind == PK_EMPTY: nil
+  elif tkind == PK_INT: result.int_val = expr
+  elif tkind == PK_BIGGEST_INT: result.big_int_val = expr
+  elif tkind == PK_FLOAT: result.float_val = expr
+  elif tkind == PK_BIGGEST_FLOAT: result.big_float_val = expr
+  elif tkind == PK_STRING: result.str_val = expr
+  elif tkind == PK_BOOL: result.bool_val = expr
+  else: {.error: "unknown kind".}
+  result
 
 # - Tcommandline_results procs
 
