@@ -7,16 +7,35 @@ type
   Tparam_kind* = enum PK_EMPTY, PK_INT, PK_FLOAT, PK_STRING, PK_BOOL,
     PK_BIGGEST_INT, PK_BIGGEST_FLOAT
 
+  ## Prototype of parameter callbacks
+  ##
+  ## A parameter callback is just a custom proc you provide which is invoked
+  ## after a parameter is parsed passing the basic type validation. The
+  ## callback proc has modification access to the Tparsed_parameter object that
+  ## will be put into Tcommandline_results: you can read it and also modify it,
+  ## maybe change its type.
+  ##
+  ## If the callback decides to abort the validation of the parameter, it has
+  ## to put into result a non zero length string with a message for the user
+  ## explaining why the validation failed, and maybe offer a hint as to what
+  ## can be done to pass validation.
   Tparameter_callback* =
     proc (parameter: string; value: var Tparsed_parameter): string
 
+  ## Holds the expectations of a parameter.
   Tparameter_specification* = object
-    ## Holds the expectations of a parameter.
-    single_word*: string
-    double_word*: string
-    consumes*: Tparam_kind
-    custom_validator*: Tparameter_callback
+    single_word*: string ## Single dash parameter
+    double_word*: string ## Double dash parameter
+    consumes*: Tparam_kind ## Expected type of the parameter (empty for none)
+    custom_validator*: Tparameter_callback ## Optional custom callback
+                                           ## to run after type conversion.
 
+  ## Contains the parsed value from the user.
+  ##
+  ## This implements an object variant through the kind field. You can 'case'
+  ## this field to write a generic proc to deal with parsed parameters, but
+  ## nothing prevents you from accessing directly the type of field you want if
+  ## you expect only one kind.
   Tparsed_parameter* = object
     case kind*: Tparam_kind
     of PK_EMPTY: nil
@@ -27,8 +46,8 @@ type
     of PK_STRING: str_val*: string
     of PK_BOOL: bool_val*: bool
 
+  ## Contains the results of the parsing.
   Tcommandline_results* = object
-    ## Contains the results of the parsing.
     positional_parameters*: seq[Tparsed_parameter]
     options*: TTable[string, Tparsed_parameter]
 
@@ -112,11 +131,12 @@ template run_custom_proc(parsed_parameter: Tparsed_parameter,
   if not custom_validator.isNil:
     except:
       raise_or_quit(EInvalidValue, ("Couldn't run custom proc for " &
-        "parameter $1 due to $2" % [escape(parameter),
+        "parameter $1:\n$2" % [escape(parameter),
         getCurrentExceptionMsg()]))
     let message = custom_validator(parameter, parsed_parameter)
     if not message.isNil and message.len > 0:
-      raise_or_quit(EInvalidValue, message)
+      raise_or_quit(EInvalidValue, ("Failed to validate value for " &
+        "parameter $1:\n$2" % [escape(parameter), message]))
 
 proc parse_parameter(quit_on_failure: bool, param, value: string,
     param_kind: Tparam_kind): Tparsed_parameter =

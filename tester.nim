@@ -49,13 +49,13 @@ proc test() =
 
   let args = @["test", "toca me la", "-a", "-wo", "rd", "--aasd", "--s", "ugh"]
   #echo "\nParsing ", join(args, " ")
-  let ret2 = tp(all_params, args = args)
-  #echo($ret2)
-  doAssert ret2.options["-a"].strVal == "-wo"
-  doAssert ret2.options.hasKey("test") == false
-  doAssert test_in(ret2, "test", str_val)
-  doAssert test_in(ret2, "--s", str_val) == false
-  doAssert test_in(ret2, "ugh", str_val)
+  var ret = tp(all_params, args = args)
+  #echo($ret)
+  doAssert ret.options["-a"].strVal == "-wo"
+  doAssert ret.options.hasKey("test") == false
+  doAssert test_in(ret, "test", str_val)
+  doAssert test_in(ret, "--s", str_val) == false
+  doAssert test_in(ret, "ugh", str_val)
   test_failure(EInvalidValue, tp(all_params, PK_INT, args))
 
   # Integer tests.
@@ -69,12 +69,13 @@ proc test() =
   test_success(tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4"]))
   test_failure(EInvalidValue,
     tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4.3"]))
-  let ret_int = tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4"])
-  doAssert ret_int.options["-i"].int_val == -445
-  doAssert test_in(ret_int, 2, int_val)
-  doAssert test_in(ret_int, 3, int_val)
-  doAssert test_in(ret_int, 4, int_val)
-  doAssert test_in(ret_int, 5, int_val) == false
+
+  ret = tp(all_params, PK_INT, @["-i", "-445", "2", "3", "4"])
+  doAssert ret.options["-i"].int_val == -445
+  doAssert test_in(ret, 2, int_val)
+  doAssert test_in(ret, 3, int_val)
+  doAssert test_in(ret, 4, int_val)
+  doAssert test_in(ret, 5, int_val) == false
 
   # String tests.
   test_success(tp(all_params, args = @["str test", "-a", "word"]))
@@ -86,11 +87,11 @@ proc test() =
   test_failure(EInvalidValue, tp(all_params, args = @["-f", ""]))
   test_failure(EInvalidValue, tp(all_params, args = @["-f", "abracadabra"]))
   test_failure(EInvalidValue, tp(all_params, args = @["-f", "12.34aadd"]))
-  let ret_float = tp(all_params, PK_FLOAT, @["-f", "12.23", "89.2", "3.14"])
-  doAssert ret_float.options["-f"].float_val == 12.23
-  doAssert test_in(ret_float, 89.2, float_val)
-  doAssert test_in(ret_float, 3.14, float_val)
-  doAssert test_in(ret_float, 3.1, float_val) == false
+  ret = tp(all_params, PK_FLOAT, @["-f", "12.23", "89.2", "3.14"])
+  doAssert ret.options["-f"].float_val == 12.23
+  doAssert test_in(ret, 89.2, float_val)
+  doAssert test_in(ret, 3.14, float_val)
+  doAssert test_in(ret, 3.1, float_val) == false
 
   # Boolean tests.
   for param in @["y", "yes", "true", "1", "on", "n", "no", "false", "0", "off"]:
@@ -107,31 +108,44 @@ proc test() =
   test_failure(EInvalidValue, tp(all_params, args = @["-I", "234.12"]))
   test_failure(EOverflow, tp(all_params,
     args = @["-I", $high(biggestInt) & "0"]))
-  let ret_bigint = tp(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
-  doAssert test_in(ret_bigint, 42, big_int_val)
-  doAssert test_in(ret_bigint, high(biggestInt), big_int_val)
-  doAssert test_in(ret_bigint, 13, big_int_val) == false
+  ret = tp(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
+  doAssert test_in(ret, 42, big_int_val)
+  doAssert test_in(ret, high(biggestInt), big_int_val)
+  doAssert test_in(ret, 13, big_int_val) == false
 
   # Big float tests.
   test_success(tp(all_params, args = @["-F", "123.235"]))
   test_failure(EInvalidValue, tp(all_params, args = @["-F", ""]))
   test_failure(EInvalidValue, tp(all_params, args = @["-F", "abracadabra"]))
   test_failure(EInvalidValue, tp(all_params, args = @["-F", "12.34aadd"]))
-  let ret_bigfloat = tp(all_params, PK_BIGGEST_FLOAT, @["111.111", "9.01"])
-  doAssert test_in(ret_bigfloat, 111.111, big_float_val)
-  doAssert test_in(ret_bigfloat, 9.01, big_float_val)
-  doAssert test_in(ret_bigfloat, 9.02, big_float_val) == false
+  ret = tp(all_params, PK_BIGGEST_FLOAT, @["111.111", "9.01"])
+  doAssert test_in(ret, 111.111, big_float_val)
+  doAssert test_in(ret, 9.01, big_float_val)
+  doAssert test_in(ret, 9.02, big_float_val) == false
 
   # Using custom procs for transformation of type back to string.
   var c1 = new_parameter_specification(single_word = "i", consumes = PK_INT)
+  ret = tp(@[c1], args = @["-i", "42"])
+  doAssert ret.options["-i"].int_val == 42
+  # Now repeat transforming to int through a custom post-validator.
   c1.custom_validator =
     proc (parameter: string, value: var Tparsed_parameter): string =
-      echo "Hey there debug $1, parsed $2" % [parameter, $value]
       value = new_parsed_parameter(PK_STRING, $value.int_val)
+  ret = tp(@[c1], args = @["-i", "42"])
+  doAssert ret.options["-i"].str_val == "42"
 
-  let ret_c1 = tp(@[c1], args = @["-i", "42"])
-  echo ($ret_c1)
-  doAssert ret_c1.options["-i"].str_val == "42"
+  # Change the custom proc to reject values lower than 18.
+  c1.custom_validator =
+    proc (parameter: string, value: var Tparsed_parameter): string =
+      let age = value.int_val
+      if age < 18:
+        result = "Can't accept minors ($1) parsing arguments" % [$age]
+      else:
+        value = new_parsed_parameter(PK_STRING, "valid_$1" % [$age])
+  ret = tp(@[c1], args = @["-i", "42"])
+  doAssert ret.options["-i"].str_val == "valid_42"
+  test_failure(EInvalidValue, tp(@[c1], args = @["-i", "17"]))
+
   echo "Tester finished"
 
 when isMainModule:
