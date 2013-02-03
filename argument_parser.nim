@@ -3,40 +3,39 @@ import os, strutils, tables, math, parseutils
 # - Types
 
 type
-  ## Different types of results for parameter parsing.
-  Tparam_kind* = enum PK_EMPTY, PK_INT, PK_FLOAT, PK_STRING, PK_BOOL,
+  Tparam_kind* = enum ## Different types of results for parameter parsing.
+    PK_EMPTY, PK_INT, PK_FLOAT, PK_STRING, PK_BOOL,
     PK_BIGGEST_INT, PK_BIGGEST_FLOAT
 
-  ## Prototype of parameter callbacks
-  ##
-  ## A parameter callback is just a custom proc you provide which is invoked
-  ## after a parameter is parsed passing the basic type validation. The
-  ## callback proc has modification access to the Tparsed_parameter object that
-  ## will be put into Tcommandline_results: you can read it and also modify it,
-  ## maybe change its type.
-  ##
-  ## If the callback decides to abort the validation of the parameter, it has
-  ## to put into result a non zero length string with a message for the user
-  ## explaining why the validation failed, and maybe offer a hint as to what
-  ## can be done to pass validation.
   Tparameter_callback* =
-    proc (parameter: string; value: var Tparsed_parameter): string
+    proc (parameter: string; value: var Tparsed_parameter): string ## \
+    ## Prototype of parameter callbacks
+    ##
+    ## A parameter callback is just a custom proc you provide which is invoked
+    ## after a parameter is parsed passing the basic type validation. The
+    ## callback proc has modification access to the Tparsed_parameter object
+    ## that will be put into Tcommandline_results: you can read it and also
+    ## modify it, maybe change its type.
+    ##
+    ## If the callback decides to abort the validation of the parameter, it has
+    ## to put into result a non zero length string with a message for the user
+    ## explaining why the validation failed, and maybe offer a hint as to what
+    ## can be done to pass validation.
 
-  ## Holds the expectations of a parameter.
-  Tparameter_specification* = object
+  Tparameter_specification* = object ## Holds the expectations of a parameter.
     single_word*: string ## Single dash parameter
     double_word*: string ## Double dash parameter
     consumes*: Tparam_kind ## Expected type of the parameter (empty for none)
-    custom_validator*: Tparameter_callback ## Optional custom callback
-                                           ## to run after type conversion.
+    custom_validator*: Tparameter_callback  ## Optional custom callback
+                                            ## to run after type conversion.
 
-  ## Contains the parsed value from the user.
-  ##
-  ## This implements an object variant through the kind field. You can 'case'
-  ## this field to write a generic proc to deal with parsed parameters, but
-  ## nothing prevents you from accessing directly the type of field you want if
-  ## you expect only one kind.
-  Tparsed_parameter* = object
+  Tparsed_parameter* = object ## \
+    ## Contains the parsed value from the user.
+    ##
+    ## This implements an object variant through the kind field. You can 'case'
+    ## this field to write a generic proc to deal with parsed parameters, but
+    ## nothing prevents you from accessing directly the type of field you want
+    ## if you expect only one kind.
     case kind*: Tparam_kind
     of PK_EMPTY: nil
     of PK_INT: int_val*: int
