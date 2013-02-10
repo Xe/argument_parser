@@ -6,4 +6,5 @@ nimcache/
 # Full paths.
 argument_parser
 argument_parser.html
-tester
+tests/code_test
+tests/example1
