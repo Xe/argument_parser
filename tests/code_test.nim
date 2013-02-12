@@ -35,14 +35,13 @@ template tp(expected: seq[Tparameter_specification] = @[],
 proc test() =
   #echo "\nParsing default system params"
   let
-    p1 = new_parameter_specification(single_word = "a", consumes = pkString)
-    p2 = new_parameter_specification(double_word = "aasd", consumes = pkString)
-    p3 = new_parameter_specification(single_word = "i", consumes = pkInt)
-    p4 = new_parameter_specification(single_word = "f", consumes = pkFloat)
-    p5 = new_parameter_specification(single_word = "b", consumes = pkBool)
-    p6 = new_parameter_specification(single_word = "I", consumes = pkBiggestInt)
-    p7 = new_parameter_specification(single_word = "F",
-      consumes = pkBiggestFloat)
+    p1 = new_parameter_specification(pkString, names = "-a")
+    p2 = new_parameter_specification(pkString, names = "--aasd")
+    p3 = new_parameter_specification(pkInt, names = "-i")
+    p4 = new_parameter_specification(pkFloat, names = "-f")
+    p5 = new_parameter_specification(pkBool, names = "-b")
+    p6 = new_parameter_specification(pkBiggestInt, names = "-I")
+    p7 = new_parameter_specification(pkBiggestFloat, names = "-F")
     all_params = @[p1, p2, p3, p4, p5, p6, p7]
 
   discard(tp(all_params))
@@ -124,7 +123,7 @@ proc test() =
   doAssert test_in(ret, 9.02, big_float_val) == false
 
   # Using custom procs for transformation of type back to string.
-  var c1 = new_parameter_specification(single_word = "i", consumes = PK_INT)
+  var c1 = new_parameter_specification(PK_INT, names = "-i")
   ret = tp(@[c1], args = @["-i", "42"])
   doAssert ret.options["-i"].int_val == 42
   # Now repeat transforming to int through a custom post-validator.

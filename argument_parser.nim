@@ -23,8 +23,7 @@ type
     ## can be done to pass validation.
 
   Tparameter_specification* = object ## Holds the expectations of a parameter.
-    single_word*: string ## Single dash parameter
-    double_word*: string ## Double dash parameter
+    names*: seq[string]  ## List of possible parameters to catch for this.
     consumes*: Tparam_kind ## Expected type of the parameter (empty for none)
     custom_validator*: Tparameter_callback  ## Optional custom callback
                                             ## to run after type conversion.
@@ -53,20 +52,18 @@ type
 
 # - Tparameter_specification procs
 
-proc init*(param: var Tparameter_specification,
-    single_word : string, double_word = "", consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil) =
+proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
+    custom_validator : Tparameter_callback = nil, names: varargs[string]) =
   # Initialization helper.
-  param.single_word = single_word
-  param.double_word = double_word
+  param.names = @names
   param.consumes = consumes
   param.custom_validator = custom_validator
 
-proc new_parameter_specification*(single_word = "",
-    double_word = "", consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil): Tparameter_specification =
+proc new_parameter_specification*(consumes = PK_EMPTY,
+    custom_validator : Tparameter_callback = nil,
+    names: varargs[string]): Tparameter_specification =
   # Initialization helper for let variables.
-  result.init(single_word, double_word, consumes, custom_validator)
+  result.init(consumes, custom_validator, names)
 
 # - Tparsed_parameter procs
 
@@ -229,24 +226,12 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   var lookup = initTable[string, ptr Tparameter_specification](
     nextPowerOfTwo(expected.len))
   for i in 0..expected.len-1:
-    let
-      parameter_specification = expected[i]
-      single_switch = "-" & parameter_specification.single_word
-      double_switch = "--" & parameter_specification.double_word
-
-    if single_switch.len > 1:
-      if lookup.hasKey(single_switch):
+    for param_to_detect in expected[i].names:
+      if lookup.hasKey(param_to_detect):
         raise_or_quit(EInvalidKey,
-          "Parameter $1 repeated in input specification" % single_switch)
+          "Parameter $1 repeated in input specification" % param_to_detect)
       else:
-        lookup[single_switch] = addr(expected[i])
-
-    if double_switch.len > 2:
-      if lookup.hasKey(double_switch):
-        raise_or_quit(EInvalidKey,
-          "Parameter $1 repeated in input specification" % double_switch)
-      else:
-        lookup[double_switch] = addr(expected[i])
+        lookup[param_to_detect] = addr(expected[i])
 
   # Loop through the input arguments detecting their type and doing stuff.
   var i = 0
