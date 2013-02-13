@@ -190,13 +190,22 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
 
 proc parse*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
+    bad_prefixes = @["-", "--"], end_of_parameters = "--",
     quit_on_failure = true): Tcommandline_results =
   ## Parses parameters and returns results.
   ##
-  ## The expected array should contain a list of the dash parameters you want
-  ## to detect, which can have additional values. Non dash parameters are
+  ## The expected array should contain a list of the parameters you want to
+  ## detect, which can capture additional values. Uncaptured parameters are
   ## considered positional parameters for which you can specify a type with
   ## type_of_positional_parameters.
+  ##
+  ## Before accepting a positional parameter, the list of bad_prefixes is
+  ## compared against it. If the positional parameter starts with any of them,
+  ## an error is displayed to the user due to ambiguity. The user can overcome
+  ## the ambiguity by typing the special string specified by end_of_parameters.
+  ## Note that values captured by parameters are not checked against bad
+  ## prefixes, otherwise it would be a problem to specify the dash as synonim
+  ## for standard input for many programs.
   ##
   ## The args sequence should be the list of parameters passed to your program
   ## without the program binary (usually OSes provide the path to the binary as
@@ -209,7 +218,11 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   ## for you to catch and handle.
 
   assert type_of_positional_parameters != PK_EMPTY
-  var expected = expected
+  for bad_prefix in bad_prefixes:
+    assert bad_prefix.len > 0, "Can't pass in a bad prefix of zero length"
+  var
+    expected = expected
+    checking_ambiguos = true
   result.init()
 
   # Prepare the input parameter list, maybe get it from the OS if not available.
@@ -239,7 +252,9 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
     let arg = args[i]
     #echo "Arg ", $i, " value '", arg, "'"
     if arg.len > 0:
-      if lookup.hasKey(arg):
+      if checking_ambiguos and arg == end_of_parameters:
+        checking_ambiguos = false
+      elif lookup.hasKey(arg):
         var parsed : Tparsed_parameter
         let param = lookup[arg]
         if param.consumes != PK_EMPTY:
@@ -254,12 +269,17 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
         #echo "\tFound ", arg, " ", next
         result.options[arg] = parsed
       else:
-        if arg[0] == '-':
-          raise_or_quit(EInvalidValue, "Found unexpected parameter $1" % arg)
-        else:
-          #echo "Normal parameter"
-          result.positional_parameters.add(parse_parameter(quit_on_failure,
-            $(1 + i), arg, type_of_positional_parameters))
+        if checking_ambiguos:
+          for bad_prefix in bad_prefixes:
+            if arg.startsWith(bad_prefix):
+              raise_or_quit(EInvalidValue, ("Found ambiguos parameter '$1' " &
+                "starting with '$2', put '$3' as the previous parameter " &
+                "if you want to force it as positional parameter.") % [arg,
+                bad_prefix, end_of_parameters])
+
+        #echo "Normal positional parameter"
+        result.positional_parameters.add(parse_parameter(quit_on_failure,
+          $(1 + i), arg, type_of_positional_parameters))
     else:
       #echo "\tEmpty file parameter?"
       result.positional_parameters.add(parse_parameter(quit_on_failure,

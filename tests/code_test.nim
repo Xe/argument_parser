@@ -26,11 +26,12 @@ template test_in(commandline_parameters, expected_value, attribute: expr):
   result
 
 template tp(expected: seq[Tparameter_specification] = @[],
-    type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil):
+    type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
+    bad_prefixes = @["-", "--"], end_of_parameters = "--"):
       expr =
   # Simple wrapper to avoid changing the last default parameter.
   parse(expected, type_of_positional_parameters, args,
-    quit_on_failure = false)
+    bad_prefixes, end_of_parameters, quit_on_failure = false)
 
 proc test() =
   #echo "\nParsing default system params"
@@ -144,6 +145,28 @@ proc test() =
   ret = tp(@[c1], args = @["-i", "42"])
   doAssert ret.options["-i"].str_val == "valid_42"
   test_failure(EInvalidValue, tp(@[c1], args = @["-i", "17"]))
+
+  # Make sure we disallow multiple parameters being the same.
+  test_failure(EInvalidKey,
+    tp(@[new_parameter_specification(names = ["-a", "-a"])]))
+  # Also repeated keys in different parameters.
+  test_failure(EInvalidKey,
+    tp(@[new_parameter_specification(names = ["-a", "--alt"]),
+      new_parameter_specification(names = ["-p", "--pert"]),
+      new_parameter_specification(names = ["-z", "--alt"])]))
+  # The following will fail with ambiguos parameter.
+  test_failure(EInvalidValue,
+    tp(all_params, args = @["-bleah", "something"]))
+  # This one won't because we are passing the disambiguator.
+  discard(tp(all_params, args = @["--", "-bleah", "something"]))
+  # This should work too because we changed the bad prefixes.
+  discard(tp(all_params, args = @["-bl", "so"], bad_prefixes = @[]))
+  # This should detect new prefixes.
+  test_failure(EInvalidValue,
+    tp(all_params, args = @["/bl", "so"], bad_prefixes = @["/"]))
+  # Mix new prefixes plus end of parsing parameters.
+  discard(tp(all_params, args = @["-*-", "/bĸ", "a"],
+    bad_prefixes = @["/"], end_of_parameters = "-*-"))
 
   echo "Tester finished"
 
