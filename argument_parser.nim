@@ -1,4 +1,4 @@
-import os, strutils, tables, math, parseutils
+import os, strutils, tables, math, parseutils, sequtils, sets, algorithm
 
 # - Types
 
@@ -27,6 +27,7 @@ type
     consumes*: Tparam_kind ## Expected type of the parameter (empty for none)
     custom_validator*: Tparameter_callback  ## Optional custom callback
                                             ## to run after type conversion.
+    help_text*: string    ## Help for this group of parameters.
 
   Tparsed_parameter* = object ## \
     ## Contains the parsed value from the user.
@@ -50,20 +51,35 @@ type
     options*: TTable[string, Tparsed_parameter]
 
 
+# - Tparam_kind procs
+
+proc `$`*(value: Tparam_kind): string {.procvar.} =
+  # Stringifies the type, used to generate help texts.
+  case value:
+  of PK_EMPTY: result = ""
+  of PK_INT: result = "INT"
+  of PK_BIGGEST_INT: result = "BIG_INT"
+  of PK_FLOAT: result = "FLOAT"
+  of PK_BIGGEST_FLOAT: result = "BIG_FLOAG"
+  of PK_STRING: result = "STRING"
+  of PK_BOOL: result = "BOOL"
+
 # - Tparameter_specification procs
 
 proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil, names: varargs[string]) =
+    custom_validator : Tparameter_callback = nil, help_text = "",
+    names: varargs[string]) =
   # Initialization helper.
   param.names = @names
   param.consumes = consumes
   param.custom_validator = custom_validator
+  param.help_text = help_text
 
 proc new_parameter_specification*(consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil,
+    custom_validator : Tparameter_callback = nil, help_text = "",
     names: varargs[string]): Tparameter_specification =
   # Initialization helper for let variables.
-  result.init(consumes, custom_validator, names)
+  result.init(consumes, custom_validator, help_text, names)
 
 # - Tparsed_parameter procs
 
@@ -188,6 +204,23 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
   of PK_EMPTY:
     nil
 
+
+template build_specification_lookup():
+    TTable[string, ptr Tparameter_specification] =
+  ## Returns the TTable used to keep pointers to all of the specifications.
+  var result {.gensym.} : TTable[string, ptr Tparameter_specification]
+  result = initTable[string, ptr Tparameter_specification](
+    nextPowerOfTwo(expected.len))
+  for i in 0..expected.len-1:
+    for param_to_detect in expected[i].names:
+      if result.hasKey(param_to_detect):
+        raise_or_quit(EInvalidKey,
+          "Parameter $1 repeated in input specification" % param_to_detect)
+      else:
+        result[param_to_detect] = addr(expected[i])
+  result
+
+
 proc parse*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
     bad_prefixes = @["-", "--"], end_of_parameters = "--",
@@ -236,15 +269,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
       args[i] = paramStr(i + 1)
 
   # Generate lookup table for each type of parameter based on strings.
-  var lookup = initTable[string, ptr Tparameter_specification](
-    nextPowerOfTwo(expected.len))
-  for i in 0..expected.len-1:
-    for param_to_detect in expected[i].names:
-      if lookup.hasKey(param_to_detect):
-        raise_or_quit(EInvalidKey,
-          "Parameter $1 repeated in input specification" % param_to_detect)
-      else:
-        lookup[param_to_detect] = addr(expected[i])
+  var lookup = build_specification_lookup()
 
   # Loop through the input arguments detecting their type and doing stuff.
   var i = 0
@@ -288,5 +313,59 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
     i += 1
 
 
-when isMainModule:
-  echo "Welcome to argument_parser!"
+proc build_help*(expected: seq[Tparameter_specification] = @[],
+    type_of_positional_parameters = PK_STRING,
+    bad_prefixes = @["-", "--"], end_of_parameters = "--"): seq[string] =
+  ## Builds basic help text and returns it as a sequence of strings.
+  ##
+  ## Note that this proc doesn't do as much sanity checks as the normal parse()
+  ## proc, though it's unlikely you will be using one without the other, so if
+  ## you had a parameter specification problem you would find out soon.
+  result = @["Usage parameters: "]
+
+  # Generate lookup table for each type of parameter based on strings.
+  let quit_on_failure = false
+  var
+    expected = expected
+    lookup = build_specification_lookup()
+    keys = toSeq(lookup.keys())
+
+  sort(keys, system.cmp)
+  # First generate the joined version of input parameters in a list.
+  var
+    seen = initSet[string]()
+    prefixes : seq[string] = @[]
+    helps : seq[string] = @[]
+  for key in keys:
+    if seen.contains(key):
+      continue
+
+    # Add the joined string to the list.
+    let param = lookup[key][]
+    var param_names = param.names
+    sort(param_names, system.cmp)
+    var prefix = join(param_names, ", ")
+    # Don't forget about the type, if the parameter consumes values
+    if PK_EMPTY != param.consumes: prefix &= " " & $param.consumes
+    prefixes.add(prefix)
+    helps.add(param.help_text)
+    # Ignore future elements.
+    for name in param.names: seen.incl(name)
+
+  # Calculate the biggest width and try to use that
+  let width = prefixes.map(proc (x: string): int = 1 + len(x)).max
+
+  for line in zip(prefixes, helps):
+    result.add(line.a & repeatChar(width - line.a.len) & line.b)
+
+
+proc echo_help*(expected: seq[Tparameter_specification] = @[],
+    type_of_positional_parameters = PK_STRING,
+    bad_prefixes = @["-", "--"], end_of_parameters = "--") =
+  ## Prints out help on the terminal.
+  ##
+  ## This is just a wrapper around build_help. Note that calling this proc
+  ## won't exit your program, you should call quit() yourself.
+  for line in build_help(expected,
+      type_of_positional_parameters, bad_prefixes, end_of_parameters):
+    echo line
