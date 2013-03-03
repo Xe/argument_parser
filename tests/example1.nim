@@ -16,9 +16,11 @@ proc process_commandline(): Tcommandline_results =
       help_text = "Admire my size", names = "-I")
     p7 = new_parameter_specification(pkBiggestFloat,
       help_text = "Admire my precission", names = "-F")
-    all_params = @[p1, p2, p3, p4, p5, p6, p7]
-  echo_help(all_params)
-  quit()
+    p8 = new_parameter_specification(help_text = "Shows version and exits",
+      names = @["-v", "--verbose"])
+    ph = new_parameter_specification(pkHelp,
+      help_text = "Display help and quit", names = @["-h", "--help", "help"])
+    all_params = @[p1, p2, p3, p4, p5, p6, p7, p8, ph]
   result = parse(all_params)
 
 when isMainModule:

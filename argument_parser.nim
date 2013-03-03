@@ -5,7 +5,7 @@ import os, strutils, tables, math, parseutils, sequtils, sets, algorithm
 type
   Tparam_kind* = enum ## Different types of results for parameter parsing.
     PK_EMPTY, PK_INT, PK_FLOAT, PK_STRING, PK_BOOL,
-    PK_BIGGEST_INT, PK_BIGGEST_FLOAT
+    PK_BIGGEST_INT, PK_BIGGEST_FLOAT, PK_HELP
 
   Tparameter_callback* =
     proc (parameter: string; value: var Tparsed_parameter): string ## \
@@ -44,11 +44,12 @@ type
     of PK_BIGGEST_FLOAT: big_float_val*: biggestFloat
     of PK_STRING: str_val*: string
     of PK_BOOL: bool_val*: bool
+    of PK_HELP: nil
 
   ## Contains the results of the parsing.
   Tcommandline_results* = object
     positional_parameters*: seq[Tparsed_parameter]
-    options*: TTable[string, Tparsed_parameter]
+    options*: TOrderedTable[string, Tparsed_parameter]
 
 
 # - Tparam_kind procs
@@ -63,6 +64,7 @@ proc `$`*(value: Tparam_kind): string {.procvar.} =
   of PK_BIGGEST_FLOAT: result = "BIG_FLOAG"
   of PK_STRING: result = "STRING"
   of PK_BOOL: result = "BOOL"
+  of PK_HELP: result = ""
 
 # - Tparameter_specification procs
 
@@ -93,6 +95,7 @@ proc `$`*(data: Tparsed_parameter): string {.procvar.} =
   of PK_BIGGEST_FLOAT: result = "$1(F)" % $data.big_float_val
   of PK_STRING: result = "\"" & $data.str_val & "\""
   of PK_BOOL: result = "$1(b)" % $data.bool_val
+  of PK_HELP: result = "help"
 
 template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
   var result {.gensym.}: Tparsed_parameter
@@ -104,6 +107,7 @@ template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
   elif tkind == PK_BIGGEST_FLOAT: result.big_float_val = expr
   elif tkind == PK_STRING: result.str_val = expr
   elif tkind == PK_BOOL: result.bool_val = expr
+  elif tkind == PK_HELP: nil
   else: {.error: "unknown kind".}
   result
 
@@ -111,8 +115,8 @@ template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
 
 proc init*(param: var Tcommandline_results;
     positional_parameters: seq[Tparsed_parameter] = @[];
-    options: TTable[string, Tparsed_parameter] =
-      initTable[string, Tparsed_parameter](4)) =
+    options: TOrderedTable[string, Tparsed_parameter] =
+      initOrderedTable[string, Tparsed_parameter](4)) =
   # Initialization helper.
   param.positional_parameters = positional_parameters
   param.options = options
@@ -129,8 +133,15 @@ proc `$`*(data: Tcommandline_results): string =
 
 template raise_or_quit(exception, message: expr): stmt {.immediate.} =
   ## Avoids repeating if check based on the default quit_on_failure variable.
+  ##
+  ## As a special case, if message has a zero length the call to quit won't
+  ## generate any messages or errors (used by the mechanism to echo help to the
+  ## user).
   if quit_on_failure:
-    quit(message)
+    if len(message) > 0:
+      quit(message)
+    else:
+      quit()
   else:
     raise newException(exception, message)
 
@@ -203,13 +214,15 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_EMPTY:
     nil
+  of PK_HELP:
+    nil
 
 
 template build_specification_lookup():
-    TTable[string, ptr Tparameter_specification] =
-  ## Returns the TTable used to keep pointers to all of the specifications.
-  var result {.gensym.} : TTable[string, ptr Tparameter_specification]
-  result = initTable[string, ptr Tparameter_specification](
+    TOrderedTable[string, ptr Tparameter_specification] =
+  ## Returns the table used to keep pointers to all of the specifications.
+  var result {.gensym.} : TOrderedTable[string, ptr Tparameter_specification]
+  result = initOrderedTable[string, ptr Tparameter_specification](
     nextPowerOfTwo(expected.len))
   for i in 0..expected.len-1:
     for param_to_detect in expected[i].names:
@@ -220,6 +233,10 @@ template build_specification_lookup():
         result[param_to_detect] = addr(expected[i])
   result
 
+
+proc echo_help(expected: seq[Tparameter_specification] = @[],
+    type_of_positional_parameters = PK_STRING,
+    bad_prefixes = @["-", "--"], end_of_parameters = "--")
 
 proc parse*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
@@ -250,7 +267,8 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   ## errors will raise exceptions (usually EInvalidValue or EOverflow) instead
   ## for you to catch and handle.
 
-  assert type_of_positional_parameters != PK_EMPTY
+  assert type_of_positional_parameters != PK_EMPTY and
+    type_of_positional_parameters != PK_HELP
   for bad_prefix in bad_prefixes:
     assert bad_prefix.len > 0, "Can't pass in a bad prefix of zero length"
   var
@@ -282,6 +300,11 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
       elif lookup.hasKey(arg):
         var parsed : Tparsed_parameter
         let param = lookup[arg]
+        # Insert check here for help, which aborts parsing.
+        if param.consumes == PK_HELP:
+          echo_help(expected, type_of_positional_parameters,
+            bad_prefixes, end_of_parameters)
+          raise_or_quit(EInvalidKey, "")
         if param.consumes != PK_EMPTY:
           if i + 1 < args.len:
             parsed = parse_parameter(quit_on_failure,
@@ -330,7 +353,6 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
     lookup = build_specification_lookup()
     keys = toSeq(lookup.keys())
 
-  sort(keys, system.cmp)
   # First generate the joined version of input parameters in a list.
   var
     seen = initSet[string]()
@@ -346,7 +368,8 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
     sort(param_names, system.cmp)
     var prefix = join(param_names, ", ")
     # Don't forget about the type, if the parameter consumes values
-    if PK_EMPTY != param.consumes: prefix &= " " & $param.consumes
+    if param.consumes != PK_EMPTY and param.consumes != PK_HELP:
+      prefix &= " " & $param.consumes
     prefixes.add(prefix)
     helps.add(param.help_text)
     # Ignore future elements.
