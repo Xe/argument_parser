@@ -7,4 +7,4 @@ nimcache/
 argument_parser
 argument_parser.html
 tests/code_test
-tests/example1
+tests/help_generation
