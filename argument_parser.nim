@@ -46,8 +46,8 @@ type
     of PK_BOOL: bool_val*: bool
     of PK_HELP: nil
 
-  ## Contains the results of the parsing.
-  Tcommandline_results* = object
+  Tcommandline_results* = object ## \
+    ## Contains the results of the parsing.
     positional_parameters*: seq[Tparsed_parameter]
     options*: TOrderedTable[string, Tparsed_parameter]
 
@@ -55,7 +55,7 @@ type
 # - Tparam_kind procs
 
 proc `$`*(value: Tparam_kind): string {.procvar.} =
-  # Stringifies the type, used to generate help texts.
+  ## Stringifies the type, used to generate help texts.
   case value:
   of PK_EMPTY: result = ""
   of PK_INT: result = "INT"
@@ -71,7 +71,9 @@ proc `$`*(value: Tparam_kind): string {.procvar.} =
 proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
     custom_validator : Tparameter_callback = nil, help_text = "",
     names: varargs[string]) =
-  # Initialization helper.
+  ## Initialization helper with default parameters.
+  ##
+  ## You can decide to miss some if you like the defaults, reducing code.
   param.names = @names
   param.consumes = consumes
   param.custom_validator = custom_validator
@@ -80,13 +82,13 @@ proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
 proc new_parameter_specification*(consumes = PK_EMPTY,
     custom_validator : Tparameter_callback = nil, help_text = "",
     names: varargs[string]): Tparameter_specification =
-  # Initialization helper for let variables.
+  ## Initialization helper for let variables.
   result.init(consumes, custom_validator, help_text, names)
 
 # - Tparsed_parameter procs
 
 proc `$`*(data: Tparsed_parameter): string {.procvar.} =
-  # Stringifies the value, mostly for debug purposes.
+  ## Stringifies the value, mostly for debug purposes.
   case data.kind:
   of PK_EMPTY: result = "nil"
   of PK_INT: result = "$1(i)" % $data.int_val
@@ -97,7 +99,27 @@ proc `$`*(data: Tparsed_parameter): string {.procvar.} =
   of PK_BOOL: result = "$1(b)" % $data.bool_val
   of PK_HELP: result = "help"
 
+
 template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
+  ## Handy compile time template to build Tparsed_parameter object variants.
+  ##
+  ## The problem with object variants is that you first have to initialise them
+  ## to a kind, then assign values to the correct variable, and it is a little
+  ## bit annoying.
+  ##
+  ## Through this template you specify as the first parameter the kind of the
+  ## Tparsed_parameter you want to build, and directly the value it will be
+  ## initialised with. The template figures out at compile time what field to
+  ## assign the variable to, and thus you reduce code clutter and may use this
+  ## to initialise single assignments variables in `let` blocks. Example:
+  ##
+  ## .. code-block:: nimrod
+  ##   let
+  ##     parsed_param1 = new_parsed_parameter(PK_FLOAT, 3.41)
+  ##     parsed_param2 = new_parsed_parameter(PK_BIGGEST_INT, 2358123 * 23123)
+  ##     # The following line doesn't compile due to
+  ##     # type mismatch: got (string) but expected 'int'
+  ##     #parsed_param3 = new_parsed_parameter(PK_INT, "231")
   var result {.gensym.}: Tparsed_parameter
   result.kind = tkind
   when tkind == PK_EMPTY: nil
@@ -237,6 +259,7 @@ template build_specification_lookup():
 proc echo_help(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
     bad_prefixes = @["-", "--"], end_of_parameters = "--")
+
 
 proc parse*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
@@ -392,3 +415,11 @@ proc echo_help*(expected: seq[Tparameter_specification] = @[],
   for line in build_help(expected,
       type_of_positional_parameters, bad_prefixes, end_of_parameters):
     echo line
+
+
+when isMainModule:
+  # Simply tests code embedded in docs.
+  let
+    parsed_param1 = new_parsed_parameter(PK_FLOAT, 3.41)
+    parsed_param2 = new_parsed_parameter(PK_BIGGEST_INT, 2358123 * 23123)
+    #parsed_param3 = new_parsed_parameter(PK_INT, "231")
