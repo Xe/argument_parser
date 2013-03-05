@@ -269,7 +269,7 @@ template build_specification_lookup():
   result
 
 
-proc echo_help(expected: seq[Tparameter_specification] = @[],
+proc echo_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
     bad_prefixes = @["-", "--"], end_of_parameters = "--")
 
@@ -348,7 +348,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
             run_custom_proc(parsed, param.custom_validator, arg)
             i += 1
           else:
-            raise newException(EInvalidValue, ("parameter $1 requires a " &
+            raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
               "value, but none was provided") % [arg])
         #echo "\tFound ", arg, " ", next
         result.options[arg] = parsed
