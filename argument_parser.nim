@@ -22,7 +22,11 @@ type
     ## explaining why the validation failed, and maybe offer a hint as to what
     ## can be done to pass validation.
 
-  Tparameter_specification* = object ## Holds the expectations of a parameter.
+  Tparameter_specification* = object ## \
+    ## Holds the expectations of a parameter.
+    ##
+    ## You create these objects and feed them to the parse() proc, which then
+    ## uses them to detect parameters and turn them into something uself.
     names*: seq[string]  ## List of possible parameters to catch for this.
     consumes*: Tparam_kind ## Expected type of the parameter (empty for none)
     custom_validator*: Tparameter_callback  ## Optional custom callback
@@ -73,7 +77,9 @@ proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
     names: varargs[string]) =
   ## Initialization helper with default parameters.
   ##
-  ## You can decide to miss some if you like the defaults, reducing code.
+  ## You can decide to miss some if you like the defaults, reducing code. You
+  ## can also use new_parameter_specification() for single assignment
+  ## variables.
   param.names = @names
   param.consumes = consumes
   param.custom_validator = custom_validator
@@ -82,13 +88,19 @@ proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
 proc new_parameter_specification*(consumes = PK_EMPTY,
     custom_validator : Tparameter_callback = nil, help_text = "",
     names: varargs[string]): Tparameter_specification =
-  ## Initialization helper for let variables.
+  ## Initialization helper for single assignment variables.
   result.init(consumes, custom_validator, help_text, names)
 
 # - Tparsed_parameter procs
 
 proc `$`*(data: Tparsed_parameter): string {.procvar.} =
   ## Stringifies the value, mostly for debug purposes.
+  ##
+  ## The proc will display the value followed by non string type in brackets.
+  ## The non string types would be PK_INT (i), PK_BIGGEST_INT (I), PK_FLOAT
+  ## (f), PK_BIGGEST_FLOAT (F), PK_BOOL (b). The string type would be enclosed
+  ## inside quotes. PK_EMPTY produces the word `nil`, and PK_HELP produces the
+  ## world `help`.
   case data.kind:
   of PK_EMPTY: result = "nil"
   of PK_INT: result = "$1(i)" % $data.int_val
@@ -139,12 +151,12 @@ proc init*(param: var Tcommandline_results;
     positional_parameters: seq[Tparsed_parameter] = @[];
     options: TOrderedTable[string, Tparsed_parameter] =
       initOrderedTable[string, Tparsed_parameter](4)) =
-  # Initialization helper.
+  ## Initialization helper with default parameters.
   param.positional_parameters = positional_parameters
   param.options = options
 
 proc `$`*(data: Tcommandline_results): string =
-  # Stringifies a Tcommandline_results structure for debug output
+  ## Stringifies a Tcommandline_results structure for debug output
   var dict: seq[string] = @[]
   for key, value in data.options:
     dict.add("$1: $2" % [escape(key), $value])
@@ -182,6 +194,7 @@ template run_custom_proc(parsed_parameter: Tparsed_parameter,
     if not message.isNil and message.len > 0:
       raise_or_quit(EInvalidValue, ("Failed to validate value for " &
         "parameter $1:\n$2" % [escape(parameter), message]))
+
 
 proc parse_parameter(quit_on_failure: bool, param, value: string,
     param_kind: Tparam_kind): Tparsed_parameter =
