@@ -6,5 +6,6 @@ nimcache/
 # Full paths.
 argument_parser
 argument_parser.html
+examples/ex_mkdir
 tests/code_test
 tests/help_generation
