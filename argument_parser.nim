@@ -13,9 +13,16 @@ type
     ##
     ## A parameter callback is just a custom proc you provide which is invoked
     ## after a parameter is parsed passing the basic type validation. The
-    ## callback proc has modification access to the Tparsed_parameter object
-    ## that will be put into Tcommandline_results: you can read it and also
-    ## modify it, maybe change its type.
+    ## `parameter` parameter is the string which triggered the option. The
+    ## `value` parameter contains the string passed by the user already parsed
+    ## into the basic type you specified for it.
+    ##
+    ## The callback proc has modification access to the Tparsed_parameter
+    ## `value` parameter that will be put into Tcommandline_results: you can
+    ## read it and also modify it, maybe changing its type. In fact, if you
+    ## need special parsing, most likely you will end up specifying PK_STRING
+    ## in the parameter input specification so that the parse() proc doesn't
+    ## *mangle* the string before you can process it yourself.
     ##
     ## If the callback decides to abort the validation of the parameter, it has
     ## to put into result a non zero length string with a message for the user
