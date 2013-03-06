@@ -27,11 +27,11 @@ template test_in(commandline_parameters, expected_value, attribute: expr):
 
 template tp(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
-    bad_prefixes = @["-", "--"], end_of_parameters = "--"):
+    bad_prefixes = @["-", "--"], end_of_options = "--"):
       expr =
   # Simple wrapper to avoid changing the last default parameter.
   parse(expected, type_of_positional_parameters, args,
-    bad_prefixes, end_of_parameters, quit_on_failure = false)
+    bad_prefixes, end_of_options, quit_on_failure = false)
 
 proc test() =
   #echo "\nParsing default system params"
@@ -164,9 +164,9 @@ proc test() =
   # This should detect new prefixes.
   test_failure(EInvalidValue,
     tp(all_params, args = @["/bl", "so"], bad_prefixes = @["/"]))
-  # Mix new prefixes plus end of parsing parameters.
+  # Mix new prefixes plus end of parsing options.
   discard(tp(all_params, args = @["-*-", "/bĸ", "a"],
-    bad_prefixes = @["/"], end_of_parameters = "-*-"))
+    bad_prefixes = @["/"], end_of_options = "-*-"))
 
   echo "Tester finished"
 

@@ -271,12 +271,12 @@ template build_specification_lookup():
 
 proc echo_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
-    bad_prefixes = @["-", "--"], end_of_parameters = "--")
+    bad_prefixes = @["-", "--"], end_of_options = "--")
 
 
 proc parse*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING, args: seq[TaintedString] = nil,
-    bad_prefixes = @["-", "--"], end_of_parameters = "--",
+    bad_prefixes = @["-", "--"], end_of_options = "--",
     quit_on_failure = true): Tcommandline_results =
   ## Parses parameters and returns results.
   ##
@@ -288,7 +288,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   ## Before accepting a positional parameter, the list of bad_prefixes is
   ## compared against it. If the positional parameter starts with any of them,
   ## an error is displayed to the user due to ambiguity. The user can overcome
-  ## the ambiguity by typing the special string specified by end_of_parameters.
+  ## the ambiguity by typing the special string specified by end_of_options.
   ## Note that values captured by parameters are not checked against bad
   ## prefixes, otherwise it would be a problem to specify the dash as synonim
   ## for standard input for many programs.
@@ -331,8 +331,8 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
     let arg = args[i]
     block adding_positional_parameter:
       if arg.len > 0 and adding_options:
-        if arg == end_of_parameters:
-          # Looks like we found the end_of_parameters marker, disable options.
+        if arg == end_of_options:
+          # Looks like we found the end_of_options marker, disable options.
           adding_options = false
           break adding_positional_parameter
         elif lookup.hasKey(arg):
@@ -342,7 +342,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
           # Insert check here for help, which aborts parsing.
           if param.consumes == PK_HELP:
             echo_help(expected, type_of_positional_parameters,
-              bad_prefixes, end_of_parameters)
+              bad_prefixes, end_of_options)
             raise_or_quit(EInvalidKey, "")
 
           if param.consumes != PK_EMPTY:
@@ -363,7 +363,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
               raise_or_quit(EInvalidValue, ("Found ambiguos parameter '$1' " &
                 "starting with '$2', put '$3' as the previous parameter " &
                 "if you want to force it as positional parameter.") % [arg,
-                bad_prefix, end_of_parameters])
+                bad_prefix, end_of_options])
 
       # Unprocessed, add the parameter to the list of positional parameters.
       result.positional_parameters.add(parse_parameter(quit_on_failure,
@@ -374,7 +374,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
 
 proc build_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
-    bad_prefixes = @["-", "--"], end_of_parameters = "--"): seq[string] =
+    bad_prefixes = @["-", "--"], end_of_options = "--"): seq[string] =
   ## Builds basic help text and returns it as a sequence of strings.
   ##
   ## Note that this proc doesn't do as much sanity checks as the normal parse()
@@ -420,13 +420,13 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
 
 proc echo_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
-    bad_prefixes = @["-", "--"], end_of_parameters = "--") =
+    bad_prefixes = @["-", "--"], end_of_options = "--") =
   ## Prints out help on the terminal.
   ##
   ## This is just a wrapper around build_help. Note that calling this proc
   ## won't exit your program, you should call quit() yourself.
   for line in build_help(expected,
-      type_of_positional_parameters, bad_prefixes, end_of_parameters):
+      type_of_positional_parameters, bad_prefixes, end_of_options):
     echo line
 
 
