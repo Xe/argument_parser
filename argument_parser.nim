@@ -309,7 +309,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
     assert bad_prefix.len > 0, "Can't pass in a bad prefix of zero length"
   var
     expected = expected
-    checking_ambiguos = true
+    adding_options = true
   result.init()
 
   # Prepare the input parameter list, maybe get it from the OS if not available.
@@ -329,31 +329,35 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   var i = 0
   while i < args.len:
     let arg = args[i]
-    #echo "Arg ", $i, " value '", arg, "'"
-    if arg.len > 0:
-      if checking_ambiguos and arg == end_of_parameters:
-        checking_ambiguos = false
-      elif lookup.hasKey(arg):
-        var parsed : Tparsed_parameter
-        let param = lookup[arg]
-        # Insert check here for help, which aborts parsing.
-        if param.consumes == PK_HELP:
-          echo_help(expected, type_of_positional_parameters,
-            bad_prefixes, end_of_parameters)
-          raise_or_quit(EInvalidKey, "")
-        if param.consumes != PK_EMPTY:
-          if i + 1 < args.len:
-            parsed = parse_parameter(quit_on_failure,
-              arg, args[i + 1], param.consumes)
-            run_custom_proc(parsed, param.custom_validator, arg)
-            i += 1
-          else:
-            raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
-              "value, but none was provided") % [arg])
-        #echo "\tFound ", arg, " ", next
-        result.options[arg] = parsed
-      else:
-        if checking_ambiguos:
+    block adding_positional_parameter:
+      if arg.len > 0 and adding_options:
+        if arg == end_of_parameters:
+          # Looks like we found the end_of_parameters marker, disable options.
+          adding_options = false
+          break adding_positional_parameter
+        elif lookup.hasKey(arg):
+          var parsed : Tparsed_parameter
+          let param = lookup[arg]
+
+          # Insert check here for help, which aborts parsing.
+          if param.consumes == PK_HELP:
+            echo_help(expected, type_of_positional_parameters,
+              bad_prefixes, end_of_parameters)
+            raise_or_quit(EInvalidKey, "")
+
+          if param.consumes != PK_EMPTY:
+            if i + 1 < args.len:
+              parsed = parse_parameter(quit_on_failure,
+                arg, args[i + 1], param.consumes)
+              run_custom_proc(parsed, param.custom_validator, arg)
+              i += 1
+            else:
+              raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
+                "value, but none was provided") % [arg])
+          #echo "\tFound ", arg, " ", next
+          result.options[arg] = parsed
+          break adding_positional_parameter
+        else:
           for bad_prefix in bad_prefixes:
             if arg.startsWith(bad_prefix):
               raise_or_quit(EInvalidValue, ("Found ambiguos parameter '$1' " &
@@ -361,11 +365,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
                 "if you want to force it as positional parameter.") % [arg,
                 bad_prefix, end_of_parameters])
 
-        #echo "Normal positional parameter"
-        result.positional_parameters.add(parse_parameter(quit_on_failure,
-          $(1 + i), arg, type_of_positional_parameters))
-    else:
-      #echo "\tEmpty file parameter?"
+      # Unprocessed, add the parameter to the list of positional parameters.
       result.positional_parameters.add(parse_parameter(quit_on_failure,
         $(1 + i), arg, type_of_positional_parameters))
 

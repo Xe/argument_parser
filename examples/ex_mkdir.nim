@@ -33,7 +33,7 @@ proc process_commandline(): Tcommandline_results =
     quit()
 
   if result.options.hasKey(PARAM_PERMISSION):
-    echo("Did found option '$1', but we won't parse '$2' in this example" %
+    echo("Found option '$1', but we won't parse '$2' in this example" %
       [PARAM_PERMISSION, result.options[PARAM_PERMISSION].str_val])
 
   if result.options.hasKey(PARAM_INTERMEDIATE):
