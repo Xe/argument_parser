@@ -1,4 +1,5 @@
-import os, strutils, tables, math, parseutils, sequtils, sets, algorithm
+import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
+  unicode
 
 # - Types
 
@@ -379,6 +380,19 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
     i += 1
 
 
+proc toString(runes: seq[TRune]): string =
+  result = ""
+  for rune in runes: result.add(rune.toUTF8)
+
+
+proc ascii_cmp(a, b: string): int =
+  ## Comparison ignoring non ascii characters, for better switch sorting.
+  let a = filterIt(toSeq(runes(a)), it.isAlpha())
+  # Can't use filterIt twice, github bug #351.
+  let b = filter(toSeq(runes(b)), proc(x: TRune): bool = x.isAlpha())
+  return system.cmp(toString(a), toString(b))
+
+
 proc build_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
     bad_prefixes = @["-", "--"], end_of_options = "--"): seq[string] =
@@ -408,7 +422,7 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
     # Add the joined string to the list.
     let param = lookup[key][]
     var param_names = param.names
-    sort(param_names, system.cmp)
+    sort(param_names, ascii_cmp)
     var prefix = join(param_names, ", ")
     # Don't forget about the type, if the parameter consumes values
     if param.consumes != PK_EMPTY and param.consumes != PK_HELP:
