@@ -419,7 +419,7 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
     for name in param.names: seen.incl(name)
 
   # Calculate the biggest width and try to use that
-  let width = prefixes.map(proc (x: string): int = 1 + len(x)).max
+  let width = prefixes.map(proc (x: string): int = 3 + len(x)).max
 
   for line in zip(prefixes, helps):
     result.add(line.a & repeatChar(width - line.a.len) & line.b)
