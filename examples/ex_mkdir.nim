@@ -8,6 +8,13 @@ const
   PARAM_VERBOSE = "-v"
   PARAM_HELP = @["-h", "--help"]
 
+template P(tnames: varargs[string], thelp: string, ttype = PK_EMPTY,
+    tcallback : Tparameter_callback = nil) =
+  ## Helper to avoid repetition of parameter adding boilerplate.
+  params.add(new_parameter_specification(ttype, custom_validator = tcallback,
+    help_text = thelp, names = tnames))
+
+
 proc parse_octal(parameter: string; value: var Tparsed_parameter): string =
   ## Custom parser and validator of octal values for PARAM_PERMISSION.
   ##
@@ -40,25 +47,21 @@ proc process_commandline(): Tcommandline_results =
   ## Parses the commandline.
   ##
   ## Returns a Tcommandline_results with at least one positional parameter.
-  let
-    p1 = new_parameter_specification(PK_HELP,
-      help_text = "Shows this help on the commandline", names = PARAM_HELP)
-    p2 = new_parameter_specification(PK_STRING,
-      help_text = "File permissions mask set on created directories, " &
-        "specified as octal string", custom_validator = parse_octal,
-      names = PARAM_PERMISSION)
-    p3 = new_parameter_specification(
-      help_text = "Create intermediate directories as required",
-      names = PARAM_INTERMEDIATE)
-    p4 = new_parameter_specification(
-      help_text = "Be verbose during directory creation", names = PARAM_VERBOSE)
-    all_params = @[p1, p2, p3, p4]
+  var params : seq[Tparameter_specification] = @[]
 
-  result = parse(all_params)
+  P(PARAM_HELP, "Shows this help on the commandline", PK_HELP)
+
+  P(PARAM_PERMISSION, "File permissions mask set on created directories, " &
+    "specified as octal string", PK_STRING, parse_octal)
+
+  P(PARAM_INTERMEDIATE, "Create intermediate directories as required")
+  P(PARAM_VERBOSE, "Be verbose during directory creation")
+
+  result = parse(params)
 
   if result.positional_parameters.len < 1:
     echo "Error, you need to pass the name of the directory you want to create"
-    echo_help(all_params)
+    echo_help(params)
     quit()
 
   if result.options.hasKey(PARAM_PERMISSION):
