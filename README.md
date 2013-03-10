@@ -32,7 +32,7 @@ the source you can just ``import argument_parser`` and use its
 contents. Use [nimrod's configuration
 files](http://nimrod-code.org/nimrodc.html#configuration-files)
 feature to specify a path to where you install this module so you
-don't have to copying it around.
+don't have to copy it around.
 
 
 Documentation
