@@ -58,8 +58,11 @@ type
     of PK_BOOL: bool_val*: bool
     of PK_HELP: nil
 
-  Tcommandline_results* = object ## \
+  Tcommandline_results* = object of TObject ## \
     ## Contains the results of the parsing.
+    ##
+    ## Usually this is the result of the parse() call, but you can inherit from
+    ## it to add your own fields for convenience.
     positional_parameters*: seq[Tparsed_parameter]
     options*: TOrderedTable[string, Tparsed_parameter]
 
