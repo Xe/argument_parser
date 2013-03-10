@@ -7,6 +7,7 @@ nimcache/
 argument_parser
 argument_parser.html
 examples/ex_cp
+examples/ex_git
 examples/ex_mkdir
 examples/ex_wget
 tests/code_test
