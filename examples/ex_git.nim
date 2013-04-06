@@ -37,7 +37,7 @@ type
 
 
 template P(tnames: varargs[string], thelp: string, ttype = PK_EMPTY,
-    tcallback : Tparameter_callback = nil) =
+    tcallback: Tparameter_callback = nil) =
   ## Helper to avoid repetition of parameter adding boilerplate.
   params.add(new_parameter_specification(ttype, custom_validator = tcallback,
     help_text = thelp, names = tnames))
@@ -77,7 +77,7 @@ proc process_commandline(): Tgit_commandline_results =
   ##
   ## Returns a Tcommandline_results with at least two positional parameter,
   ## where the last parameter is implied to be the destination of the copying.
-  var params : seq[Tparameter_specification] = @[]
+  var params: seq[Tparameter_specification] = @[]
 
   P(PARAM_VERSION, "Shows the version of the program")
   P(PARAM_HELP, "Shows this help on the commandline", PK_HELP)
@@ -96,7 +96,7 @@ proc process_commandline(): Tgit_commandline_results =
     echo "Version 3.1415"
     quit()
 
-  var found_commands : seq[string] = @[]
+  var found_commands: seq[string] = @[]
   for command in COMMANDS:
     if result.options.hasKey(command):
       found_commands.add(command)

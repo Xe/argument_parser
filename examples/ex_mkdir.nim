@@ -9,7 +9,7 @@ const
   PARAM_HELP = @["-h", "--help"]
 
 template P(tnames: varargs[string], thelp: string, ttype = PK_EMPTY,
-    tcallback : Tparameter_callback = nil) =
+    tcallback: Tparameter_callback = nil) =
   ## Helper to avoid repetition of parameter adding boilerplate.
   params.add(new_parameter_specification(ttype, custom_validator = tcallback,
     help_text = thelp, names = tnames))
@@ -32,7 +32,7 @@ proc parse_octal(parameter: string; value: var Tparsed_parameter): string =
   if len(value.str_val) < 1:
     return "The empty string is not a valid value for '$1'" % [parameter]
 
-  var octal_value : int
+  var octal_value: int
   let parsed_characters = value.str_val.parseOct(octal_value)
   if parsed_characters < len(value.str_val):
     echo ($value.str_val & ", " & $parsed_characters & ", " & $octal_value)
@@ -47,7 +47,7 @@ proc process_commandline(): Tcommandline_results =
   ## Parses the commandline.
   ##
   ## Returns a Tcommandline_results with at least one positional parameter.
-  var params : seq[Tparameter_specification] = @[]
+  var params: seq[Tparameter_specification] = @[]
 
   P(PARAM_HELP, "Shows this help on the commandline", PK_HELP)
 

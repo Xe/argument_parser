@@ -84,7 +84,7 @@ proc `$`*(value: Tparam_kind): string {.procvar.} =
 # - Tparameter_specification procs
 
 proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil, help_text = "",
+    custom_validator: Tparameter_callback = nil, help_text = "",
     names: varargs[string]) =
   ## Initialization helper with default parameters.
   ##
@@ -97,7 +97,7 @@ proc init*(param: var Tparameter_specification, consumes = PK_EMPTY,
   param.help_text = help_text
 
 proc new_parameter_specification*(consumes = PK_EMPTY,
-    custom_validator : Tparameter_callback = nil, help_text = "",
+    custom_validator: Tparameter_callback = nil, help_text = "",
     names: varargs[string]): Tparameter_specification =
   ## Initialization helper for single assignment variables.
   result.init(consumes, custom_validator, help_text, names)
@@ -267,7 +267,7 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
 template build_specification_lookup():
     TOrderedTable[string, ptr Tparameter_specification] =
   ## Returns the table used to keep pointers to all of the specifications.
-  var result {.gensym.} : TOrderedTable[string, ptr Tparameter_specification]
+  var result {.gensym.}: TOrderedTable[string, ptr Tparameter_specification]
   result = initOrderedTable[string, ptr Tparameter_specification](
     nextPowerOfTwo(expected.len))
   for i in 0..expected.len-1:
@@ -347,7 +347,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
           adding_options = false
           break adding_positional_parameter
         elif lookup.hasKey(arg):
-          var parsed : Tparsed_parameter
+          var parsed: Tparsed_parameter
           let param = lookup[arg]
 
           # Insert check here for help, which aborts parsing.
@@ -416,8 +416,8 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
   # First generate the joined version of input parameters in a list.
   var
     seen = initSet[string]()
-    prefixes : seq[string] = @[]
-    helps : seq[string] = @[]
+    prefixes: seq[string] = @[]
+    helps: seq[string] = @[]
   for key in keys:
     if seen.contains(key):
       continue

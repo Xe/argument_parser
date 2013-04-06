@@ -32,7 +32,7 @@ proc process_commandline(): Tcommandline_results =
   ##
   ## Returns a Tcommandline_results with at least two positional parameter,
   ## where the last parameter is implied to be the destination of the copying.
-  var params : seq[Tparameter_specification] = @[]
+  var params: seq[Tparameter_specification] = @[]
 
   P(PARAM_PRESERVE_ALL, ("Same as $1 $2 $3 options, preserves " &
     "structure and attributes of files but not directory structure") % [
