@@ -14,7 +14,7 @@ the best possible experience for your users.
 License
 =======
 
-MIT.
+[MIT license](LICENSE.md).
 
 
 Installation and usage
