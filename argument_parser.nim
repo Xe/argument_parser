@@ -1,3 +1,14 @@
+## Command line parsing module for Nimrod.
+##
+## `Nimrod <http://nimrod-code.org>`_ provides the `parseopt module
+## <http://nimrod-code.org/parseopt.html>`_ to parse options from the
+## commandline. This module tries to provide functionality to prevent you from
+## writing commandline parsing and let you concentrate on providing the best
+## possible experience for your users.
+##
+## Source code for this module can be found at
+## https://github.com/gradha/argument_parser.
+
 import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
 
