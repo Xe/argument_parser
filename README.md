@@ -54,7 +54,7 @@ common usage patterns for different types of commandline parsing.
 Roadmap
 =======
 
-The current stable version is 0.1.0. Note that the default *master*
+The last stable version is 0.1.0. Note that the default *master*
 branch from the github repo is for development, though I try not
 to break too much stuff. I don't have much of a roadmap myself, but
 I use [github's issue

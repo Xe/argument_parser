@@ -1,6 +1,20 @@
 import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
 
+const
+  VERSION_STR* = "0.1.1" ## Module version as a string.
+  VERSION_INT* = (major: 0, minor: 1, maintenance: 1) ## \
+  ## Module version as an integer tuple.
+  ##
+  ## Major versions changes mean a break in API backwards compatibility, either
+  ## through removal of symbols or modification of their purpose.
+  ##
+  ## Minor version changes can add procs (and maybe default parameters). Minor
+  ## odd versions are development/git/unstable versions. Minor even versions
+  ## are public stable releases.
+  ##
+  ## Maintenance version changes mean bugfixes or non API changes.
+
 # - Types
 
 type
