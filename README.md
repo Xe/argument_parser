@@ -44,6 +44,12 @@ file with instructions on the exported symbols.  If you installed
 through babel, you can find this in a path similar to
 ``~/.babel/libs/argument_parser-version``.
 
+The generated documentation for all public versions can also be
+found at
+[http://gradha.github.io/argument_parser/](http://gradha.github.io/argument_parser/).
+No guarantees on its freshness, though, do check the generation
+date at the bottom.
+
 In the distant future, when most features are complete, a tutorial
 will be provided to explain how to use the module. In the meantime
 you should read the examples provided in the [examples
