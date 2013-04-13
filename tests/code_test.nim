@@ -168,6 +168,17 @@ proc test() =
   discard(tp(all_params, args = @["-*-", "/bĸ", "a"],
     bad_prefixes = @["/"], end_of_options = "-*-"))
 
+  # Test boolean switches using their second version.
+  ret = tp(@[new_parameter_specification(names = @["-s", "--silent"])],
+    args = @["file1", "--silent"])
+  doAssert ret.options.hasKey("-s")
+  doAssert (not ret.options.hasKey("--silent"))
+
+  ret = tp(@[new_parameter_specification(names = @["--silent", "-s"])],
+    args = @["file1", "--silent"])
+  doAssert ret.options.hasKey("--silent")
+  doAssert (not ret.options.hasKey("-s"))
+
   echo "Tester finished"
 
 when isMainModule:
