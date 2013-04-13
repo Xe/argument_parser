@@ -13,8 +13,8 @@ import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
 
 const
-  VERSION_STR* = "0.1.1" ## Module version as a string.
-  VERSION_INT* = (major: 0, minor: 1, maintenance: 1) ## \
+  VERSION_STR* = "0.1.2" ## Module version as a string.
+  VERSION_INT* = (major: 0, minor: 1, maintenance: 2) ## \
   ## Module version as an integer tuple.
   ##
   ## Major versions changes mean a break in API backwards compatibility, either
