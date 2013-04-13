@@ -60,13 +60,14 @@ common usage patterns for different types of commandline parsing.
 Roadmap
 =======
 
-The last stable version is 0.1.0. Note that the default *master*
-branch from the github repo is for development, though I try not
-to break too much stuff. I don't have much of a roadmap myself, but
-I use [github's issue
-tracker](http://github.com/gradha/argument_parser/issues) to keep
-reminders of what has to be done. Feel free to add your comments
-to existing issues or create new ones.
+The last version is 0.1.1, see the [list of recent changes](CHANGES.md).
+
+Note that the default *master* branch from the github repo is for development,
+though I try not to break too much stuff. I don't have much of a roadmap
+myself, but I use [github's issue
+tracker](http://github.com/gradha/argument_parser/issues) to keep reminders of
+what has to be done. Feel free to add your comments to existing issues or
+create new ones.
 
 
 Feedback
