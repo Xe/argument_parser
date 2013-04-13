@@ -390,8 +390,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
             else:
               raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
                 "value, but none was provided") % [arg])
-          #echo "\tFound ", arg, " ", next
-          result.options[arg] = parsed
+          result.options[param.names[0]] = parsed
           break adding_positional_parameter
         else:
           for bad_prefix in bad_prefixes:
