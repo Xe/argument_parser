@@ -88,6 +88,14 @@ type
     ##
     ## Usually this is the result of the parse() call, but you can inherit from
     ## it to add your own fields for convenience.
+    ##
+    ## Note that you always have to access the ``options`` ordered table with
+    ## the first variant of a parameter name. For instance, if you have an
+    ## option specified like ``@["-s", "--silent"]`` and the user types
+    ## ``--silent`` at the commandline, you have to use
+    ## ``options.hasKey("-s")`` to test for it. This standarizes access through
+    ## the first name variant for all options to avoid you repeating the test
+    ## with different keys.
     positional_parameters*: seq[Tparsed_parameter]
     options*: TOrderedTable[string, Tparsed_parameter]
 
