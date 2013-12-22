@@ -4,6 +4,24 @@ version       = "0.3.0"
 author        = "Grzegorz Adam Hankiewicz"
 description   = """Provides a complex commandline parser."""
 license       = "MIT"
+InstallFiles = """
+
+LICENSE.rst
+README.rst
+argument_parser.nim
+docindex.rst
+docs/changes.rst
+examples/ex_cp.nim
+examples/ex_git.nim
+examples/ex_mkdir.nim
+examples/ex_wget.nim
+examples/nimrod.cfg
+nakefile.nim
+tests/code_test.nim
+tests/help_generation.nim
+tests/nimrod.cfg
+
+"""
 
 [Deps]
 Requires: "nake >= 1.0"

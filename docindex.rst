@@ -17,4 +17,4 @@ need to run ``nake doc`` at the root of the project:
   * `LICENSE.rst <LICENSE.rst>`_.
   * `README.rst <README.rst>`_.
   * `docs/changes.rst <docs/changes.rst>`_.
-  * `docs/release_steps.rst <docs/release_steps.rst>`_ (not for babel version).
+  * `docs/release_steps.rst <docs/release_steps.rst>`_ (not in babel version).
