@@ -2,7 +2,7 @@
 Argument parser changes log
 ===========================
 
-v0.3.0 ????-??-??
+v0.2.0 2013-12-22
 -----------------
 
 * `Adopted git-flow <https://github.com/gradha/argument_parser/issues/25>`_.

@@ -76,7 +76,7 @@ from the `docindex file <docindex.rst>`_ for convenience.
 Changes
 =======
 
-This is version is 0.3.0. For a list of changes see the `docs/changes.rst
+This is version is 0.2.0. For a list of changes see the `docs/changes.rst
 <docs/changes.rst>`_ file.
 
 
