@@ -2,7 +2,7 @@ import nake, os, osproc, htmlparser, xmltree, strtabs, times
 
 const name = "argument_parser"
 let
-  rst_files = @["docs"/"CHANGES", "docs"/"release_steps",
+  rst_files = @["docs"/"changes", "docs"/"release_steps",
     "LICENSE", "README", "docindex"]
 
 proc change_rst_links_to_html(html_file: string) =
