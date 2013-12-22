@@ -69,7 +69,8 @@ In the distant future, when most features are complete, a tutorial will be
 provided to explain how to use the module. In the meantime you should read the
 examples provided in the `examples subdirectory <examples>`_. These examples
 try to show how to implement common usage patterns for different types of
-command line parsing.
+command line parsing. The examples are also converted to HTML and referenced
+from the `docindex file <docindex.rst>`_ for convenience.
 
 
 Changes

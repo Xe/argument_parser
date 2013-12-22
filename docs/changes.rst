@@ -8,6 +8,8 @@ v0.3.0 ????-??-??
 * `Adopted git-flow <https://github.com/gradha/argument_parser/issues/25>`_.
 * `Changed documentation to rst
   <https://github.com/gradha/argument_parser/issues/26>`_.
+* `Integrated examples as documentation
+  <https://github.com/gradha/argument_parser/issues/27>`_.
 
 v0.1.1 2013-04-13
 -----------------

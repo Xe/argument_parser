@@ -35,6 +35,15 @@ proc needs_refresh(target: string, src: varargs[string]): bool =
     if srcTime > TARGET_TIME:
       return true
 
+proc nim_to_rst(nim_file, rst_file: string) =
+  ## Reads nim_file and creates into rst_file a *blocked* nim version for HTML.
+  let
+    (dir, name, ext) = nim_file.splitFile
+    title_symbols = repeatChar(name.len, '=')
+  var source = "$1\n$2\n$1\n.. code-block:: nimrod\n  " % [title_symbols, name]
+  source.add(readFile(nim_file).replace("\n", "\n  "))
+  writeFile(rst_file, source)
+
 
 iterator all_rst_files(): tuple[src, dest: string] =
   for rst_name in rst_files:
@@ -46,6 +55,16 @@ iterator all_rst_files(): tuple[src, dest: string] =
       continue
     R.dest = rst_name & ".html"
     yield R
+
+iterator all_examples(): tuple[src, dest: string] =
+  # Generates .nim/.html pairs from source in the examples directory.
+  for path in "examples".walkDirRec:
+    if path.splitFile().ext != ".nim": continue
+    var R: tuple[src, dest: string]
+    R.src = path
+    R.dest = path.changeFileExt("html")
+    yield R
+
 
 task "babel", "Uses babel to install " & name & " locally":
   if shell("babel install -y"):
@@ -62,6 +81,19 @@ task "doc", "Generates HTML version of the documentation":
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
+
+  # Generate html files from the example sources.
+  for nim_file, html_file in all_examples():
+    if not html_file.needs_refresh(nim_file): continue
+    # Create temporary rst file.
+    let rst_file = nim_file.changeFileExt("rst")
+    nim_to_rst(nim_file, rst_file)
+    if not shell("nimrod rst2html --verbosity:0", rst_file):
+      quit("Could not generate html doc for " & rst_file)
+    else:
+      change_rst_links_to_html(html_file)
+      echo rst_file & " -> " & html_file
+    rst_file.removeFile
 
   # Generate html files from the rst docs.
   for rst_file, html_file in all_rst_files():
@@ -84,5 +116,8 @@ task "check_doc", "Validates rst format for a subset of documentation":
 task "clean", "Removes temporal files, mainly":
   removeDir("nimcache")
   for rst_file, html_file in all_rst_files():
+    echo "Removing ", html_file
+    html_file.removeFile
+  for nim_file, html_file in all_examples():
     echo "Removing ", html_file
     html_file.removeFile

@@ -6,11 +6,18 @@ Available documentation files for `Nimrod argument parser
 <https://github.com/gradha/argument_parser>`_. To obtain these HTML files you
 need to run ``nake doc`` at the root of the project:
 
-* API generated from nimrod code.
+* Generated from Nimrod code.
 
-  * `argument_parser.html <argument_parser.html>`_ (also available online at
+  * `argument_parser API <argument_parser.html>`_ (also available online at
     `http://gradha.github.io/argument_parser/
     <http://gradha.github.io/argument_parser/>`_).
+
+  * Examples:
+
+    * `ex_cp.html <examples/ex_cp.html>`_.
+    * `ex_git.html <examples/ex_git.html>`_.
+    * `ex_mkdir.html <examples/ex_mkdir.html>`_.
+    * `ex_wget.html <examples/ex_wget.html>`_.
 
 * Text:
 
