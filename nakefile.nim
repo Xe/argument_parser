@@ -1,4 +1,5 @@
-import nake, os, osproc, htmlparser, xmltree, strtabs, times
+import nake, os, osproc, htmlparser, xmltree, strtabs, times,
+  argument_parser, zipfiles
 
 const name = "argument_parser"
 let
@@ -121,3 +122,30 @@ task "clean", "Removes temporal files, mainly":
   for nim_file, html_file in all_examples():
     echo "Removing ", html_file
     html_file.removeFile
+
+task "dist_doc", "Generate zip with documentation":
+    runTask "clean"
+    runTask "doc"
+    let
+      dname = name & "-" & VERSION_STR & "-docs"
+      zname = dname & ".zip"
+    removeFile(name)
+    removeFile(zname)
+    var Z: TZipArchive
+    proc zadd(dest, src: string) =
+      echo "Adding '" & src & "' -> '" & dest & "'"
+      Z.addFile(dest, src)
+    if not Z.open(zname, fmWrite):
+      quit("Couldn't open zip " & zname)
+    try:
+      echo "OPening ", name
+      zadd(dname / name & ".html", name & ".html")
+      echo "OPening ", name
+      for rst_file, html_file in all_rst_files():
+        zadd(dname / html_file, html_file)
+      echo "OPening ", name
+      for nim_file, html_file in all_examples():
+        zadd(dname / html_file, html_file)
+    finally:
+      Z.close
+    echo "Built ", zname, " sized ", zname.getFileSize, " bytes."

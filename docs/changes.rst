@@ -10,6 +10,8 @@ v0.3.0 ????-??-??
   <https://github.com/gradha/argument_parser/issues/26>`_.
 * `Integrated examples as documentation
   <https://github.com/gradha/argument_parser/issues/27>`_.
+* `Added zip with HTML docs as binary download
+  <https://github.com/gradha/argument_parser/issues/28>`_.
 
 v0.1.1 2013-04-13
 -----------------

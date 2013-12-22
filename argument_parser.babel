@@ -17,6 +17,7 @@ examples/ex_mkdir.nim
 examples/ex_wget.nim
 examples/nimrod.cfg
 nakefile.nim
+nakefile.nimrod.cfg
 tests/code_test.nim
 tests/help_generation.nim
 tests/nimrod.cfg

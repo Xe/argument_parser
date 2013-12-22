@@ -17,6 +17,9 @@ What to do for a new public release?
 * git flow release finish versionname (the tagname is versionname without v).
 * Move closed issues without milestone to the release milestone.
 * Push all to git: ``git push origin master develop --tags``.
+* Run ``nake dist_doc`` to generate zip package and attach to
+  `https://github.com/gradha/argument_parser/releases
+  <https://github.com/gradha/argument_parser/releases>`_.
 * Increase version numbers, at least maintenance (stable version + 0.1.1):
 
   * Modify `../README.rst <../README.rst>`_.
@@ -24,8 +27,8 @@ What to do for a new public release?
   * Modify `../argument_parser.babel <../argument_parser.babel>`_.
   * Add to `changes.rst <changes.rst>`_ development version with unknown date.
 
-* ``git commit -av`` into develop with *Bumps version numbers for develop
-  branch. Refs #release issue*.
+* ``git commit -av`` into develop with `Bumps version numbers for develop
+  branch. Refs #release issue`.
 * Close the dummy release issue.
 * Check out gh-pages branch and run update script.
 * Add to the index.html the link of the new version along with files.
