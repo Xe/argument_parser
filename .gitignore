@@ -1,14 +1,17 @@
 # Global patterns
+*.html
 *.swp
+*.zip
 .DS_Store
 nimcache/
 
 # Full paths.
-argument_parser
-argument_parser.html
-examples/ex_cp
-examples/ex_git
-examples/ex_mkdir
-examples/ex_wget
-tests/code_test
-tests/help_generation
+/argument_parser
+/argument_parser.html
+/examples/ex_cp
+/examples/ex_git
+/examples/ex_mkdir
+/examples/ex_wget
+/nakefile
+/tests/code_test
+/tests/help_generation
