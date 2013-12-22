@@ -57,17 +57,21 @@ subdirectory](examples). These examples try to show how to implement
 common usage patterns for different types of commandline parsing.
 
 
-Roadmap
+Changes
 =======
 
-The last version is 0.1.1, see the [list of recent changes](CHANGES.md).
+The last version is 0.3.0, see the [list of recent changes](CHANGES.md).
 
-Note that the default *master* branch from the github repo is for development,
-though I try not to break too much stuff. I don't have much of a roadmap
-myself, but I use [github's issue
-tracker](http://github.com/gradha/argument_parser/issues) to keep reminders of
-what has to be done. Feel free to add your comments to existing issues or
-create new ones.
+
+Git branches
+============
+
+This project uses the `git-flow branching model
+<https://github.com/nvie/gitflow>`_. Which means the ``master`` default branch
+doesn't *see* much movement, development happens in another branch like
+``develop``. Most people will be fine using the ``master`` branch, but if you
+want to contribute something please check out first the ``develop`` brach and
+do pull requests against that.
 
 
 Feedback
