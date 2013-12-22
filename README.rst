@@ -2,8 +2,8 @@
 Nimrod argument parser
 ======================
 
-`Nimrod <http://nimrod-code.org>`_ provides the `parseopt module
-<http://nimrod-code.org/parseopt.html>`_ to parse options from the command
+`Nimrod <http://nimrod-lang.org>`_ provides the `parseopt module
+<http://nimrod-lang.org/parseopt.html>`_ to parse options from the command
 line. I found this module lacking, used to python modules like `optparse
 <http://docs.python.org/2/library/optparse.html>`_ or `argparse
 <http://docs.python.org/3/library/argparse.html>`_.  This module tries to
@@ -21,30 +21,44 @@ License
 `MIT license <LICENSE.rst>`_.
 
 
-Installation and usage
-======================
+Installation
+============
 
-To get the source code you can likely use `Nimrod's babel package manager
-<https://github.com/nimrod-code/babel>`_ and type::
+Stable version
+--------------
 
-    babel install argument_parser
+Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's babel
+package manager <https://github.com/nimrod-code/babel>`_ to install the
+module::
 
-If you don't have babel you can simply download the argument_parser.nim file
-and add it to your program. All other files in this repository are accessory
-and can be ignored for normal usage. Once you have the source you can just
-``import argument_parser`` and use its contents. Use `nimrod's configuration
-files <http://nimrod-code.org/nimrodc.html#configuration-files>`_ feature to
-specify a path to where you install this module so you don't have to copy it
-around.
+    $ babel update
+    $ babel install argument_parser
+
+Development version
+-------------------
+
+Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's babel
+package manager <https://github.com/nimrod-code/babel>`_ to install locally the
+github checkout::
+
+    $ git clone https://github.com/gradha/argument_parser.git
+    $ cd argument_parser
+    $ git checkout develop
+    $ babel install
 
 
 Documentation
 =============
 
-The argument_parser module comes with embedded docstrings. You can run ``nimrod
-doc2 argument_parser.nim`` and obtain a reference html file with instructions
-on the exported symbols.  If you installed through babel, you can find this in
-a path similar to ``~/.babel/libs/argument_parser-version``.
+Once you have installed ``argument_parser`` you can just ``import
+argument_parser`` in your programs and use its API.  The ``argument_parser``
+module comes with embedded docstrings. You can run ``nake doc`` to generate the
+HTML along with other documents, which are referenced from the `docindex file
+<docindex.rst>`_. Here is an example on how to build the HTML on Unix::
+
+    $ cd `babel path argument_parser`
+    $ nake doc
+    $ open docindex.html
 
 The generated documentation for all public versions can also be found at
 `http://gradha.github.io/argument_parser/
@@ -61,7 +75,7 @@ command line parsing.
 Changes
 =======
 
-The last version is 0.3.0. For a list of changes see the `docs/changes.rst
+This is version is 0.3.0. For a list of changes see the `docs/changes.rst
 <docs/changes.rst>`_ file.
 
 
@@ -81,5 +95,5 @@ Feedback
 
 You can send me feedback through `github's issue tracker
 <http://github.com/gradha/argument_parser/issues>`_. I also take a look from
-time to time to `Nimrod's forums <http://forum.nimrod-code.org>`_ where you can
+time to time to `Nimrod's forums <http://forum.nimrod-lang.org>`_ where you can
 talk to other nimrod programmers.
