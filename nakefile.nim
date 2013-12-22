@@ -2,6 +2,7 @@ import nake, os, osproc, htmlparser, xmltree, strtabs, times
 
 const name = "argument_parser"
 let
+  modules = @[name]
   rst_files = @["docs"/"changes", "docs"/"release_steps",
     "LICENSE", "README", "docindex"]
 
@@ -51,6 +52,17 @@ task "babel", "Uses babel to install " & name & " locally":
     echo "Installed."
 
 task "doc", "Generates HTML version of the documentation":
+  # Generate documentation for the nim modules.
+  for module in modules:
+    let
+      nim_file = module & ".nim"
+      html_file = module & ".html"
+    if not html_file.needs_refresh(nim_file): continue
+    if not shell("nimrod doc --verbosity:0", module):
+      quit("Could not generate html doc for " & module)
+    else:
+      echo "Generated " & html_file
+
   # Generate html files from the rst docs.
   for rst_file, html_file in all_rst_files():
     if not html_file.needs_refresh(rst_file): continue
