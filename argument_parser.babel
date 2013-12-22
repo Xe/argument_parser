@@ -1,6 +1,6 @@
 [Package]
 name          = "argument_parser"
-version       = "0.2.0"
+version       = "0.3.1"
 author        = "Grzegorz Adam Hankiewicz"
 description   = """Provides a complex commandline parser."""
 license       = "MIT"
