@@ -39,7 +39,7 @@ proc needs_refresh(target: string, src: varargs[string]): bool =
 proc nim_to_rst(nim_file, rst_file: string) =
   ## Reads nim_file and creates into rst_file a *blocked* nim version for HTML.
   let
-    (dir, name, ext) = nim_file.splitFile
+    name = nim_file.splitFile.name
     title_symbols = repeatChar(name.len, '=')
   var source = "$1\n$2\n$1\n.. code-block:: nimrod\n  " % [title_symbols, name]
   source.add(readFile(nim_file).replace("\n", "\n  "))
@@ -68,8 +68,8 @@ iterator all_examples(): tuple[src, dest: string] =
 
 
 task "babel", "Uses babel to install " & name & " locally":
-  if shell("babel install -y"):
-    echo "Installed."
+  direshell("babel install -y")
+  echo "Installed."
 
 task "doc", "Generates HTML version of the documentation":
   # Generate documentation for the nim modules.
