@@ -5,7 +5,8 @@ Argument parser changes log
 v0.3.1 ????-??-??
 -----------------
 
-* Nothing yet.
+* `Updated code to work with 0.9.6 nim release
+  <https://github.com/gradha/argument_parser/issues/36>`_.
 
 v0.2.0 2013-12-22
 -----------------
