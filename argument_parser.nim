@@ -76,9 +76,9 @@ type
     case kind*: Tparam_kind
     of PK_EMPTY: nil
     of PK_INT: int_val*: int
-    of PK_BIGGEST_INT: big_int_val*: biggestInt
+    of PK_BIGGEST_INT: big_int_val*: BiggestInt
     of PK_FLOAT: float_val*: float
-    of PK_BIGGEST_FLOAT: big_float_val*: biggestFloat
+    of PK_BIGGEST_FLOAT: big_float_val*: BiggestFloat
     of PK_STRING: str_val*: string
     of PK_BOOL: bool_val*: bool
     of PK_HELP: nil
