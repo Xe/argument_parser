@@ -359,7 +359,7 @@ proc parse*(expected: seq[Tparameter_specification] = @[],
   # Prepare the input parameter list, maybe get it from the OS if not available.
   var args = args
   if args == nil:
-    let total_params = ParamCount()
+    let total_params = paramCount()
     #echo "Got no explicit args, retrieving from OS. Count: ", total_params
     newSeq(args, total_params)
     for i in 0..total_params - 1:
