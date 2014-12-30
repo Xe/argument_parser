@@ -7,6 +7,8 @@ v0.3.1 ????-??-??
 
 * `Updated code to work with 0.9.6 nim release
   <https://github.com/gradha/argument_parser/issues/36>`_.
+* `Switched to master as development branch
+  <https://github.com/gradha/argument_parser/issues/31>`_.
 
 v0.2.0 2013-12-22
 -----------------
