@@ -53,12 +53,13 @@ Documentation
 Once you have installed ``argument_parser`` you can just ``import
 argument_parser`` in your programs and use its API.  The ``argument_parser``
 module comes with embedded docstrings. You can run ``nake doc`` to generate the
-HTML along with other documents, which are referenced from the `docindex file
-<docindex.rst>`_. Here is an example on how to build the HTML on Unix::
+HTML along with other documents, which are referenced from the `generated
+theindex.html <theindex.html>`_ file.  Here is an example on how to build the
+HTML on Unix::
 
     $ cd `babel path argument_parser`
     $ nake doc
-    $ open docindex.html
+    $ open theindex.html
 
 The generated documentation for all public versions can also be found at
 `http://gradha.github.io/argument_parser/
@@ -69,8 +70,7 @@ In the distant future, when most features are complete, a tutorial will be
 provided to explain how to use the module. In the meantime you should read the
 examples provided in the `examples subdirectory <examples>`_. These examples
 try to show how to implement common usage patterns for different types of
-command line parsing. The examples are also converted to HTML and referenced
-from the `docindex file <docindex.rst>`_ for convenience.
+command line parsing.
 
 
 Changes

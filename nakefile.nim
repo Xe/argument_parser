@@ -5,7 +5,7 @@ const name = "argument_parser"
 let
   modules = @[name]
   rst_files = @["docs"/"changes", "docs"/"release_steps",
-    "LICENSE", "README", "docindex"]
+    "LICENSE", "README"]
 
 proc change_rst_links_to_html(html_file: string) =
   ## Opens the file, iterates hrefs and changes them to .html if they are .rst.
@@ -78,32 +78,33 @@ task "doc", "Generates HTML version of the documentation":
       nim_file = module & ".nim"
       html_file = module & ".html"
     if not html_file.needs_refresh(nim_file): continue
-    if not shell("nimrod doc --verbosity:0", module):
+    if not shell("nimrod doc --verbosity:0 --index:on", module):
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
 
   # Generate html files from the example sources.
-  for nim_file, html_file in all_examples():
-    if not html_file.needs_refresh(nim_file): continue
-    # Create temporary rst file.
-    let rst_file = nim_file.changeFileExt("rst")
-    nim_to_rst(nim_file, rst_file)
-    if not shell("nimrod rst2html --verbosity:0", rst_file):
-      quit("Could not generate html doc for " & rst_file)
-    else:
-      change_rst_links_to_html(html_file)
-      echo rst_file & " -> " & html_file
-    rst_file.removeFile
+  #for nim_file, html_file in all_examples():
+  #  if not html_file.needs_refresh(nim_file): continue
+  #  # Create temporary rst file.
+  #  let rst_file = nim_file.changeFileExt("rst")
+  #  nim_to_rst(nim_file, rst_file)
+  #  if not shell("nimrod rst2html --verbosity:0 --index:on", rst_file):
+  #    quit("Could not generate html doc for " & rst_file)
+  #  else:
+  #    change_rst_links_to_html(html_file)
+  #    echo rst_file & " -> " & html_file
+  #  rst_file.removeFile
 
   # Generate html files from the rst docs.
   for rst_file, html_file in all_rst_files():
     if not html_file.needs_refresh(rst_file): continue
-    if not shell("nimrod rst2html --verbosity:0", rst_file):
+    if not shell("nimrod rst2html --verbosity:0 --index:on", rst_file):
       quit("Could not generate html doc for " & rst_file)
     else:
       change_rst_links_to_html(html_file)
       echo rst_file & " -> " & html_file
+  direShell nimExe, "buildIndex ."
   echo "All done"
 
 task "check_doc", "Validates rst format for a subset of documentation":
@@ -116,12 +117,11 @@ task "check_doc", "Validates rst format for a subset of documentation":
 
 task "clean", "Removes temporal files, mainly":
   removeDir("nimcache")
-  for rst_file, html_file in all_rst_files():
-    echo "Removing ", html_file
-    html_file.removeFile
-  for nim_file, html_file in all_examples():
-    echo "Removing ", html_file
-    html_file.removeFile
+  for path in walk_dir_rec("."):
+    let ext = splitFile(path).ext
+    if ext == ".html" or ext == ".idx":
+      echo "Removing ", path
+      path.removeFile()
 
 task "dist_doc", "Generate zip with documentation":
     runTask "clean"
