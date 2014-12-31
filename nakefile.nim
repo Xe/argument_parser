@@ -1,11 +1,53 @@
-import nake, os, osproc, htmlparser, xmltree, strtabs, times,
-  argument_parser, zipfiles
+import
+  nake, os, osproc, htmlparser, xmltree, strtabs, times,
+  argument_parser, zipfiles, sequtils
 
 const name = "argument_parser"
 let
   modules = @[name]
   rst_files = @["docs"/"changes", "docs"/"release_steps",
     "LICENSE", "README"]
+
+proc mangle_idx(filename, prefix: string): string =
+  ## Reads `filename` and returns it as a string with `prefix` applied.
+  ##
+  ## All the paths in the idx file will be prefixed with `prefix`. This is done
+  ## adding the prefix to the second *column* which is meant to be the html
+  ## file reference.
+  result = ""
+  for line in filename.lines:
+    var cols = to_seq(line.split('\t'))
+    if cols.len > 1: cols[1] = prefix/cols[1]
+    result.add(cols.join("\t") & "\n")
+
+
+proc collapse_idx(base_dir: string) =
+  ## Walks `base_dir` recursively collapsing idx files.
+  ##
+  ## The files are collapsed to the base directory using the semi full relative
+  ## path replacing path separators with underscores. The contents of the idx
+  ## files are modified to contain the relative path.
+  let
+    base_dir = if base_dir.len < 1: "." else: base_dir
+    filter = {pcFile, pcLinkToFile, pcDir, pcLinkToDir}
+  for path in base_dir.walk_dir_rec(filter):
+    let (dir, name, ext) = path.split_file
+    # Ignore files which are not an index.
+    if ext != ".idx": continue
+    # Ignore files found in the base_dir.
+    if dir.same_file(base_dir): continue
+    # Ignore paths starting with a dot
+    if name[0] == '.': continue
+    # Extract the parent paths.
+    let dest = base_dir/(name & ext)
+    var relative_dir = dir[base_dir.len .. <dir.len]
+    if relative_dir[0] == DirSep or relative_dir[0] == AltSep:
+      relative_dir.delete(0, 0)
+    assert(not relative_dir.is_absolute)
+
+    echo "Flattening ", path, " to ", dest
+    dest.write_file(mangle_idx(path, relative_dir))
+
 
 proc change_rst_links_to_html(html_file: string) =
   ## Opens the file, iterates hrefs and changes them to .html if they are .rst.
@@ -99,11 +141,21 @@ task "doc", "Generates HTML version of the documentation":
   # Generate html files from the rst docs.
   for rst_file, html_file in all_rst_files():
     if not html_file.needs_refresh(rst_file): continue
-    if not shell("nimrod rst2html --verbosity:0 --index:on", rst_file):
+    let
+      (dir, name, ext) = rst_file.split_file
+      prev_dir = get_current_dir()
+
+    if dir.len > 0: cd(dir)
+
+    if not shell("nimrod rst2html --verbosity:0 --index:on", name & ext):
       quit("Could not generate html doc for " & rst_file)
     else:
-      change_rst_links_to_html(html_file)
+      change_rst_links_to_html(html_file.extract_filename)
       echo rst_file & " -> " & html_file
+
+    cd(prev_dir)
+
+  collapse_idx(".")
   direShell nimExe, "buildIndex ."
   echo "All done"
 
