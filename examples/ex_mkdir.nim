@@ -77,7 +77,7 @@ proc process_commandline(): Tcommandline_results =
     echo "Will be verbose during directory creation"
 
 
-proc main() =
+proc main*() {.procvar.} =
   let args = process_commandline()
   for param in args.positional_parameters:
     echo "Creating dir for '" & param.str_val & "'"

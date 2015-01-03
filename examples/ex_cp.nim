@@ -70,7 +70,7 @@ proc process_commandline(): Tcommandline_results =
   got(PARAM_VERBOSE)
 
 
-proc main() =
+proc main*() {.procvar.} =
   let args = process_commandline()
   let dest = args.positional_parameters[args.positional_parameters.len - 1]
   for i in 0..args.positional_parameters.len - 2:

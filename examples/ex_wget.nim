@@ -81,7 +81,7 @@ proc process_commandline(): Tcommandline_results =
     echo "Will use progress type $1" % [result.options[PARAM_PROGRESS].str_val]
 
 
-proc main() =
+proc main*() {.procvar.} =
   let args = process_commandline()
   for param in args.positional_parameters:
     echo "Downloading $1" % param.str_val
