@@ -8,6 +8,7 @@
 nimcache/
 
 # Full paths.
+/.sybil_systems
 /argument_parser
 /examples/ex_cp
 /examples/ex_git
