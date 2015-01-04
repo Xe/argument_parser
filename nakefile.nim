@@ -124,7 +124,7 @@ proc doc() =
       nim_file = module & ".nim"
       html_file = module & ".html"
     if not html_file.needs_refresh(nim_file): continue
-    if not shell("nimrod doc --verbosity:0 --index:on", module):
+    if not shell(nim_exe & " doc --verbosity:0 --index:on", module):
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
@@ -135,7 +135,7 @@ proc doc() =
   #  # Create temporary rst file.
   #  let rst_file = nim_file.changeFileExt("rst")
   #  nim_to_rst(nim_file, rst_file)
-  #  if not shell("nimrod rst2html --verbosity:0 --index:on", rst_file):
+  #  if not shell(nim_exe & " rst2html --verbosity:0 --index:on", rst_file):
   #    quit("Could not generate html doc for " & rst_file)
   #  else:
   #    change_rst_links_to_html(html_file)
@@ -151,7 +151,7 @@ proc doc() =
 
     if dir.len > 0: cd(dir)
 
-    if not shell("nimrod rst2html --verbosity:0 --index:on", name & ext):
+    if not shell(nim_exe & " rst2html --verbosity:0 --index:on", name & ext):
       quit("Could not generate html doc for " & rst_file)
     else:
       change_rst_links_to_html(html_file.extract_filename)
@@ -176,8 +176,8 @@ proc check_docs() =
 proc clean() =
   nimcache_dir.remove_dir
   for path in dot_walk_dir_rec("."):
-    let ext = splitFile(path).ext
-    if ext == ".html" or ext == ".idx":
+    let ext = splitFile(path).ext.to_lower
+    if ext in [".html", ".idx", ".exe"]:
       echo "Removing ", path
       path.removeFile()
 
@@ -210,6 +210,16 @@ proc dist_doc() =
     echo "Built ", zname, " sized ", zname.getFileSize, " bytes."
 
 
+proc build_examples() =
+  ## Builds all the examples in release mode.
+  with_dir("examples"):
+    for cfg in walk_files("*.nimrod.cfg"):
+      let
+        nim = cfg.change_file_ext("").change_file_ext("nim")
+      echo "Compiling ", nim
+      dire_shell(nim_exe, "c --verbosity:0 --hints:off", nim)
+
+
 proc run_tests() =
   run_test_subdirectories("tests")
 
@@ -217,6 +227,7 @@ proc run_tests() =
 task "babel", "Uses babel to install " & name & " locally.": babel_install()
 task "doc", "Generates HTML version of the documentation.": doc()
 task "clean", "Removes temporal files, mainly.": clean()
+task "ex", "Build example binaries.": build_examples()
 task "test", "Runs test suite.": run_tests()
 
 if sybil_witness.exists_file:
