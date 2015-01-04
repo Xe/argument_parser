@@ -70,9 +70,12 @@ proc process_commandline(): Tcommandline_results =
   got(PARAM_VERBOSE)
 
 
-when isMainModule:
+proc main*() {.procvar.} =
   let args = process_commandline()
   let dest = args.positional_parameters[args.positional_parameters.len - 1]
   for i in 0..args.positional_parameters.len - 2:
     echo "Copying $1 -> $2" % [args.positional_parameters[i].str_val,
       dest.str_val]
+
+
+when isMainModule: main()

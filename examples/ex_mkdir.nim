@@ -8,6 +8,7 @@ const
   PARAM_VERBOSE = "-v"
   PARAM_HELP = @["-h", "--help"]
 
+
 template P(tnames: varargs[string], thelp: string, ttype = PK_EMPTY,
     tcallback: Tparameter_callback = nil) =
   ## Helper to avoid repetition of parameter adding boilerplate.
@@ -76,7 +77,10 @@ proc process_commandline(): Tcommandline_results =
     echo "Will be verbose during directory creation"
 
 
-when isMainModule:
+proc main*() {.procvar.} =
   let args = process_commandline()
   for param in args.positional_parameters:
     echo "Creating dir for '" & param.str_val & "'"
+
+
+when isMainModule: main()

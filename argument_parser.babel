@@ -24,4 +24,9 @@ tests/nimrod.cfg
 """
 
 [Deps]
-Requires: "nake >= 1.0"
+Requires: """
+
+nake >= 1.4
+https://github.com/gradha/badger_bits.git >= 0.2.2
+
+"""

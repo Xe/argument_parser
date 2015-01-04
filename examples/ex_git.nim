@@ -131,8 +131,11 @@ proc process_commandline(): Tgit_commandline_results =
   result.command = found_commands[0]
 
 
-when isMainModule:
+proc main*() {.procvar.} =
   let args = process_commandline()
   echo "Using command '$1'" % [args.command]
   for param in args.positional_parameters:
     echo "Acting on $1" % param.str_val
+
+
+when isMainModule: main()

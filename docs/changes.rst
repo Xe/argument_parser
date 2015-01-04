@@ -11,6 +11,8 @@ v0.3.1 ????-??-??
   <https://github.com/gradha/argument_parser/issues/31>`_.
 * `Replaced static docindex.rst with generated index
   <https://github.com/gradha/argument_parser/issues/38>`_.
+* `Replace manual tests with badger_bits nake procs
+  <https://github.com/gradha/argument_parser/issues/39>`_.
 
 v0.2.0 2013-12-22
 -----------------

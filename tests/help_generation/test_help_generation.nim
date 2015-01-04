@@ -23,6 +23,10 @@ proc process_commandline(): Tcommandline_results =
     all_params = @[p1, p2, p3, p4, p5, p6, p7, p8, ph]
   result = parse(all_params)
 
-when isMainModule:
+
+proc test() =
   let ret = process_commandline()
   echo($ret)
+
+
+when isMainModule: test()

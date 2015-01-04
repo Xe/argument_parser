@@ -1,12 +1,14 @@
 import
-  nake, os, osproc, htmlparser, xmltree, strtabs, times,
+  bb_nake, bb_os, osproc, htmlparser, xmltree, strtabs, times,
   argument_parser, zipfiles, sequtils
 
 const name = "argument_parser"
+
 let
   modules = @[name]
   rst_files = @["docs"/"changes", "docs"/"release_steps",
     "LICENSE", "README"]
+
 
 proc mangle_idx(filename, prefix: string): string =
   ## Reads `filename` and returns it as a string with `prefix` applied.
@@ -65,6 +67,7 @@ proc change_rst_links_to_html(html_file: string) =
   if DID_CHANGE:
     writeFile(html_file, $html)
 
+
 proc needs_refresh(target: string, src: varargs[string]): bool =
   assert len(src) > 0, "Pass some parameters to check for"
   var TARGET_TIME: float
@@ -109,18 +112,19 @@ iterator all_examples(): tuple[src, dest: string] =
     yield R
 
 
-task "babel", "Uses babel to install " & name & " locally":
+proc babel_install() =
   direshell("babel install -y")
   echo "Installed."
 
-task "doc", "Generates HTML version of the documentation":
+
+proc doc() =
   # Generate documentation for the nim modules.
   for module in modules:
     let
       nim_file = module & ".nim"
       html_file = module & ".html"
     if not html_file.needs_refresh(nim_file): continue
-    if not shell("nimrod doc --verbosity:0 --index:on", module):
+    if not shell(nim_exe & " doc --verbosity:0 --index:on", module):
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
@@ -131,7 +135,7 @@ task "doc", "Generates HTML version of the documentation":
   #  # Create temporary rst file.
   #  let rst_file = nim_file.changeFileExt("rst")
   #  nim_to_rst(nim_file, rst_file)
-  #  if not shell("nimrod rst2html --verbosity:0 --index:on", rst_file):
+  #  if not shell(nim_exe & " rst2html --verbosity:0 --index:on", rst_file):
   #    quit("Could not generate html doc for " & rst_file)
   #  else:
   #    change_rst_links_to_html(html_file)
@@ -147,7 +151,7 @@ task "doc", "Generates HTML version of the documentation":
 
     if dir.len > 0: cd(dir)
 
-    if not shell("nimrod rst2html --verbosity:0 --index:on", name & ext):
+    if not shell(nim_exe & " rst2html --verbosity:0 --index:on", name & ext):
       quit("Could not generate html doc for " & rst_file)
     else:
       change_rst_links_to_html(html_file.extract_filename)
@@ -159,7 +163,8 @@ task "doc", "Generates HTML version of the documentation":
   direShell nimExe, "buildIndex ."
   echo "All done"
 
-task "check_doc", "Validates rst format for a subset of documentation":
+
+proc check_docs() =
   for rst_file, html_file in all_rst_files():
     echo "Testing ", rst_file
     let (output, exit) = execCmdEx("rst2html.py " & rst_file & " > /dev/null")
@@ -167,15 +172,17 @@ task "check_doc", "Validates rst format for a subset of documentation":
       echo "Failed python processing of " & rst_file
       echo output
 
-task "clean", "Removes temporal files, mainly":
-  removeDir("nimcache")
-  for path in walk_dir_rec("."):
-    let ext = splitFile(path).ext
-    if ext == ".html" or ext == ".idx":
+
+proc clean() =
+  nimcache_dir.remove_dir
+  for path in dot_walk_dir_rec("."):
+    let ext = splitFile(path).ext.to_lower
+    if ext in [".html", ".idx", ".exe"]:
       echo "Removing ", path
       path.removeFile()
 
-task "dist_doc", "Generate zip with documentation":
+
+proc dist_doc() =
     runTask "clean"
     runTask "doc"
     let
@@ -201,3 +208,28 @@ task "dist_doc", "Generate zip with documentation":
     finally:
       Z.close
     echo "Built ", zname, " sized ", zname.getFileSize, " bytes."
+
+
+proc build_examples() =
+  ## Builds all the examples in release mode.
+  with_dir("examples"):
+    for cfg in walk_files("*.nimrod.cfg"):
+      let
+        nim = cfg.change_file_ext("").change_file_ext("nim")
+      echo "Compiling ", nim
+      dire_shell(nim_exe, "c --verbosity:0 --hints:off", nim)
+
+
+proc run_tests() =
+  run_test_subdirectories("tests")
+
+
+task "babel", "Uses babel to install " & name & " locally.": babel_install()
+task "doc", "Generates HTML version of the documentation.": doc()
+task "clean", "Removes temporal files, mainly.": clean()
+task "ex", "Build example binaries.": build_examples()
+task "test", "Runs test suite.": run_tests()
+
+if sybil_witness.exists_file:
+  task "check_doc", "Validates a subset of rst files.": check_docs()
+  task "dist_doc", "Generates zip with documentation.": dist_doc()
