@@ -160,9 +160,9 @@ proc doc(open_files = false) =
     else:
       change_rst_links_to_html(html_file.extract_filename)
       echo rst_file & " -> " & html_file
-      if open_files: shell("open " & html_file)
 
     cd(prev_dir)
+    if open_files: shell("open " & html_file)
 
   collapse_idx(".")
   direShell nimExe, "buildIndex ."

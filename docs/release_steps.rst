@@ -33,5 +33,5 @@ What to do for a new public release?
 * Check out gh-pages branch and run update script.
 * Add to the index.html the link of the new version along with files.
 * Push docs branch.
-* Announce at `http://forum.nimrod-code.org/t/135
-  <http://forum.nimrod-code.org/t/135>`_.
+* Announce at `http://forum.nim-lang.org/t/135
+  <http://forum.nim-lang.org/t/135>`_.

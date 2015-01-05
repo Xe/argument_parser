@@ -1,9 +1,9 @@
-======================
-Nimrod argument parser
-======================
+===================
+Nim argument parser
+===================
 
-`Nimrod <http://nimrod-lang.org>`_ provides the `parseopt module
-<http://nimrod-lang.org/parseopt.html>`_ to parse options from the command
+The `Nim programming language <http://nim-lang.org>`_ provides the `parseopt
+module <http://nim-lang.org/parseopt.html>`_ to parse options from the command
 line. I found this module lacking, used to python modules like `optparse
 <http://docs.python.org/2/library/optparse.html>`_ or `argparse
 <http://docs.python.org/3/library/argparse.html>`_.  This module tries to
@@ -27,9 +27,8 @@ Installation
 Stable version
 --------------
 
-Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's Nimble
-package manager <https://github.com/nim-lang/nimble>`_ to install the
-module::
+Install the `Nim <http://nim-lang.org>`_ compiler.  Use `Nim's Nimble package
+manager <https://github.com/nim-lang/nimble>`_ to install the module::
 
     $ nimble update
     $ nimble install argument_parser
@@ -37,9 +36,9 @@ module::
 Development version
 -------------------
 
-Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's Nimble
-package manager <https://github.com/nim-lang/nimble>`_ to install locally the
-github checkout::
+Install the `Nim <http://nim-lang.org>`_ compiler.  Use `Nim's Nimble package
+manager <https://github.com/nim-lang/nimble>`_ to install locally the github
+checkout::
 
     $ git clone https://github.com/gradha/argument_parser.git
     $ cd argument_parser
@@ -96,5 +95,5 @@ Feedback
 
 You can send me feedback through `github's issue tracker
 <http://github.com/gradha/argument_parser/issues>`_. I also take a look from
-time to time to `Nimrod's forums <http://forum.nimrod-lang.org>`_ where you can
-talk to other nimrod programmers.
+time to time to `Nim's forums <http://forum.nim-lang.org>`_ where you can talk
+to other Nim programmers.
