@@ -23,6 +23,8 @@ v0.3.1 ????-??-??
   <https://github.com/gradha/argument_parser/issues/22>`_.
 * `Updated to Nim 0.10.2 and Nimble
   <https://github.com/gradha/argument_parser/issues/37>`_.
+* `Fixed deprecation warnings
+  <https://github.com/gradha/argument_parser/issues/30>`_.
 
 v0.2.0 2013-12-22
 -----------------
