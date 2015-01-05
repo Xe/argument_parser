@@ -2,6 +2,10 @@
 Argument parser changes log
 ===========================
 
+This is the changes log for `argument_parser
+<https://github.com/gradha/argument_parser>`_. See the `README
+<../README.rst>`_.
+
 v0.3.1 ????-??-??
 -----------------
 

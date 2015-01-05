@@ -2,6 +2,9 @@
 Argument parser license
 =======================
 
+This is the license for `argument_parser
+<https://github.com/gradha/argument_parser>`_. See the `README <README.rst>`_.
+
 | The MIT License (MIT)
 | Copyright (c) 2013 Grzegorz Adam Hankiewicz
 

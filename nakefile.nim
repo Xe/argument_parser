@@ -165,7 +165,7 @@ proc doc(open_files = false) =
     if open_files: shell("open " & html_file)
 
   collapse_idx(".")
-  direShell nimExe, "buildIndex ."
+  direShell nimExe, "buildIndex --verbosity:0 ."
   echo "All done"
 
 proc doco() = doc(open_files = true)

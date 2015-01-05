@@ -1,6 +1,6 @@
-===================
-Nim argument parser
-===================
+======================
+Argument parser readme
+======================
 
 The `Nim programming language <http://nim-lang.org>`_ provides the `parseopt
 module <http://nim-lang.org/parseopt.html>`_ to parse options from the command
