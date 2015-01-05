@@ -4,22 +4,21 @@ version       = "0.3.1"
 author        = "Grzegorz Adam Hankiewicz"
 description   = """Provides a complex commandline parser."""
 license       = "MIT"
+
+installDirs = """
+
+docs
+examples
+
+"""
+
 InstallFiles = """
 
 LICENSE.rst
 README.rst
 argument_parser.nim
-docs/changes.rst
-examples/ex_cp.nim
-examples/ex_git.nim
-examples/ex_mkdir.nim
-examples/ex_wget.nim
-examples/nimrod.cfg
 nakefile.nim
 nakefile.nimrod.cfg
-tests/code_test.nim
-tests/help_generation.nim
-tests/nimrod.cfg
 
 """
 

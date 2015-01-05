@@ -9,7 +9,7 @@ What to do for a new public release?
 
   * Modify `../README.rst <../README.rst>`_.
   * Modify `../argument_parser.nim <../argument_parser.nim>`_.
-  * Modify `../argument_parser.babel <../argument_parser.babel>`_.
+  * Modify `../argument_parser.nimble <../argument_parser.nimble>`_.
   * Update `changes.rst <changes.rst>`_ with list of changes and
     version/number.
 
@@ -24,7 +24,7 @@ What to do for a new public release?
 
   * Modify `../README.rst <../README.rst>`_.
   * Modify `../argument_parser.nim <../argument_parser.nim>`_.
-  * Modify `../argument_parser.babel <../argument_parser.babel>`_.
+  * Modify `../argument_parser.nimble <../argument_parser.nimble>`_.
   * Add to `changes.rst <changes.rst>`_ development version with unknown date.
 
 * ``git commit -av`` into develop with `Bumps version numbers for develop
