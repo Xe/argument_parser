@@ -95,7 +95,7 @@ iterator all_rst_files(): tuple[src, dest: string] =
   for rst_name in rst_files:
     var R: tuple[src, dest: string]
     R.src = rst_name & ".rst"
-    # Ignore files if they don't exist, babel version misses some.
+    # Ignore files if they don't exist.
     if not R.src.existsFile:
       echo "Ignoring missing ", R.src
       continue
@@ -112,13 +112,16 @@ iterator all_examples(): tuple[src, dest: string] =
     yield R
 
 
-proc babel_install() =
-  direshell("babel install -y")
+proc nimble_install() =
+  direshell("nimble install -y")
   echo "Installed."
 
 
-proc doc() =
-  # Generate documentation for the nim modules.
+proc doc(open_files = false) =
+  ## Generates HTML documentation files.
+  ##
+  ## If `open_files` is true the ``open`` command will be called for each
+  ## generated HTML file.
   for module in modules:
     let
       nim_file = module & ".nim"
@@ -128,6 +131,7 @@ proc doc() =
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
+      if open_files: shell("open " & html_file)
 
   # Generate html files from the example sources.
   #for nim_file, html_file in all_examples():
@@ -158,11 +162,13 @@ proc doc() =
       echo rst_file & " -> " & html_file
 
     cd(prev_dir)
+    if open_files: shell("open " & html_file)
 
   collapse_idx(".")
-  direShell nimExe, "buildIndex ."
+  direShell nimExe, "buildIndex --verbosity:0 ."
   echo "All done"
 
+proc doco() = doc(open_files = true)
 
 proc check_docs() =
   for rst_file, html_file in all_rst_files():
@@ -186,7 +192,7 @@ proc dist_doc() =
     clean()
     doc()
 
-    let dir = dist_dir / name & "-" & VERSION_STR & "-docs"
+    let dir = dist_dir / name & "-" & argument_parser.version_str & "-docs"
     dist_dir.remove_dir
     dist_dir.create_dir
 
@@ -220,8 +226,11 @@ Add the following notes to the release info:
 Binary MD5 checksums:""" % [argument_parser.version_str]
   show_md5_for_github(templ)
 
+proc web() = switch_to_gh_pages()
+proc postweb() = switch_back_from_gh_pages()
 
-task "babel", "Uses babel to install " & name & " locally.": babel_install()
+task "install", "Uses nimble to install " & name & " locally.": nimble_install()
+task "i", "Alias for `install`.": nimble_install()
 task "doc", "Generates HTML version of the documentation.": doc()
 task "clean", "Removes temporal files, mainly.": clean()
 task "ex", "Build example binaries.": build_examples()
@@ -229,5 +238,10 @@ task "test", "Runs test suite.": run_tests()
 
 if sybil_witness.exists_file:
   task "check_doc", "Validates a subset of rst files.": check_docs()
+  task "web", "Renders gh-pages, don't use unless you are gradha.": web()
+  task "postweb", "Gradha uses this like portals, don't touch!": postweb()
   task "dist_doc", "Generates zip with documentation.": dist_doc()
   task "md5", "Computes md5 of files found in dist subdirectory.": md5()
+
+when defined(macosx):
+  task "doco", "Like 'doc' but also calls 'open' on generated HTML.": doco()

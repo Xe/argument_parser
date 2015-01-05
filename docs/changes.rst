@@ -2,6 +2,10 @@
 Argument parser changes log
 ===========================
 
+This is the changes log for `argument_parser
+<https://github.com/gradha/argument_parser>`_. See the `README
+<../README.rst>`_.
+
 v0.3.1 ????-??-??
 -----------------
 
@@ -17,6 +21,8 @@ v0.3.1 ????-??-??
   <https://github.com/gradha/argument_parser/issues/40>`_.
 * `Documented constructor syntax alternative to new_parsed_parameter template
   <https://github.com/gradha/argument_parser/issues/22>`_.
+* `Updated to Nim 0.10.2 and Nimble
+  <https://github.com/gradha/argument_parser/issues/37>`_.
 
 v0.2.0 2013-12-22
 -----------------

@@ -36,13 +36,13 @@ template tp(expected: seq[Tparameter_specification] = @[],
 proc test() =
   #echo "\nParsing default system params"
   let
-    p1 = new_parameter_specification(pkString, names = "-a")
-    p2 = new_parameter_specification(pkString, names = "--aasd")
-    p3 = new_parameter_specification(pkInt, names = "-i")
-    p4 = new_parameter_specification(pkFloat, names = "-f")
-    p5 = new_parameter_specification(pkBool, names = "-b")
-    p6 = new_parameter_specification(pkBiggestInt, names = "-I")
-    p7 = new_parameter_specification(pkBiggestFloat, names = "-F")
+    p1 = new_parameter_specification(PK_STRING, names = "-a")
+    p2 = new_parameter_specification(PK_STRING, names = "--aasd")
+    p3 = new_parameter_specification(PK_INT, names = "-i")
+    p4 = new_parameter_specification(PK_FLOAT, names = "-f")
+    p5 = new_parameter_specification(PK_BOOL, names = "-b")
+    p6 = new_parameter_specification(PK_BIGGEST_INT, names = "-I")
+    p7 = new_parameter_specification(PK_BIGGEST_FLOAT, names = "-F")
     all_params = @[p1, p2, p3, p4, p5, p6, p7]
 
   discard(tp(all_params))
@@ -107,10 +107,10 @@ proc test() =
   test_failure(EInvalidValue, tp(all_params, args = @["-I", "fail"]))
   test_failure(EInvalidValue, tp(all_params, args = @["-I", "234.12"]))
   test_failure(EOverflow, tp(all_params,
-    args = @["-I", $high(biggestInt) & "0"]))
-  ret = tp(all_params, PK_BIGGEST_INT, @["42", $high(biggestInt)])
+    args = @["-I", $high(BiggestInt) & "0"]))
+  ret = tp(all_params, PK_BIGGEST_INT, @["42", $high(BiggestInt)])
   doAssert test_in(ret, 42, big_int_val)
-  doAssert test_in(ret, high(biggestInt), big_int_val)
+  doAssert test_in(ret, high(BiggestInt), big_int_val)
   doAssert test_in(ret, 13, big_int_val) == false
 
   # Big float tests.
