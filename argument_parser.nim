@@ -73,6 +73,9 @@ type
     ## this field to write a generic proc to deal with parsed parameters, but
     ## nothing prevents you from accessing directly the type of field you want
     ## if you expect only one kind.
+    ##
+    ## To create objects of this type you can use the `new_parsed_parameter()
+    ## <#new_parsed_parameter>`_ template.
     case kind*: Tparam_kind
     of PK_EMPTY: nil
     of PK_INT: int_val*: int
@@ -157,17 +160,15 @@ proc `$`*(data: Tparsed_parameter): string {.procvar.} =
 
 
 template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
-  ## Handy compile time template to build Tparsed_parameter object variants.
-  ##
-  ## The problem with object variants is that you first have to initialise them
-  ## to a kind, then assign values to the correct variable, and it is a little
-  ## bit annoying.
+  ## Handy compile time template to build `Tparsed_parameter
+  ## <#Tparsed_parameter>`_ object variants.
   ##
   ## Through this template you specify as the first parameter the kind of the
-  ## Tparsed_parameter you want to build, and directly the value it will be
-  ## initialised with. The template figures out at compile time what field to
-  ## assign the variable to, and thus you reduce code clutter and may use this
-  ## to initialise single assignments variables in `let` blocks. Example:
+  ## `Tparsed_parameter <#Tparsed_parameter>`_ you want to build, and directly
+  ## the value it will be initialised with. The template figures out at compile
+  ## time what field to assign the variable to, and thus you reduce code
+  ## clutter and may use this to initialise single assignments variables in
+  ## `let` blocks. Example:
   ##
   ## .. code-block:: nimrod
   ##   let
@@ -176,6 +177,28 @@ template new_parsed_parameter*(tkind: Tparam_kind, expr): Tparsed_parameter =
   ##     # The following line doesn't compile due to
   ##     # type mismatch: got (string) but expected 'int'
   ##     #parsed_param3 = new_parsed_parameter(PK_INT, "231")
+  ##
+  ## At some point the Nim programming language introduced initialization of
+  ## object variants through a new constructor syntax where you specify the
+  ## names of the fields you want to initialise. The new constructor syntax is
+  ## slightly more verbose and you need to know which field of the
+  ## `Tparsed_parameter <#Tparsed_parameter>`_ you want to set, but it has the
+  ## advantage of working with runtime variables, something this template
+  ## doesn't support.  The constructor syntax looks like this:
+  ##
+  ## .. code-block:: nimrod
+  ##   let
+  ##     parsed_param1 = Tparsed_parameter(kind: PK_FLOAT,
+  ##       float_val: 3.41)
+  ##     parsed_param2 = Tparsed_parameter(kind: PK_BIGGEST_INT,
+  ##       big_int_val: 2358123 * 23123)
+  ##     parsed_param3 = Tparsed_parameter(kind: PK_INT, str_val: "231")
+  ##
+  ## Note however that this new constructor syntax won't catch the error where
+  ## ``parsed_param3`` is being assigned an incorrect field at compile time:
+  ## you will get an ``EInvalidField`` exception raised at runtime in debug
+  ## builds, and also in release builds if you compile with
+  ## ``--fieldChecks:on``.
   var result {.gensym.}: Tparsed_parameter
   result.kind = tkind
   when tkind == PK_EMPTY: nil
