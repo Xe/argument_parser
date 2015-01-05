@@ -259,14 +259,15 @@ template run_custom_proc(parsed_parameter: Tparsed_parameter,
   ##
   ## Pass in the string of the parameter triggering the call. If the
   if not custom_validator.isNil:
+    try:
+      let message = custom_validator(parameter, parsed_parameter)
+      if not message.isNil and message.len > 0:
+        raise_or_quit(EInvalidValue, ("Failed to validate value for " &
+          "parameter $1:\n$2" % [escape(parameter), message]))
     except:
       raise_or_quit(EInvalidValue, ("Couldn't run custom proc for " &
         "parameter $1:\n$2" % [escape(parameter),
         getCurrentExceptionMsg()]))
-    let message = custom_validator(parameter, parsed_parameter)
-    if not message.isNil and message.len > 0:
-      raise_or_quit(EInvalidValue, ("Failed to validate value for " &
-        "parameter $1:\n$2" % [escape(parameter), message]))
 
 
 proc parse_parameter(quit_on_failure: bool, param, value: string,
@@ -321,9 +322,9 @@ proc parse_parameter(quit_on_failure: bool, param, value: string,
       raise_or_quit(EInvalidValue, ("parameter $1 requires a " &
         "float, but $2 can't be parsed into one") % [param, escape(value)])
   of PK_EMPTY:
-    nil
+    discard
   of PK_HELP:
-    nil
+    discard
 
 
 template build_specification_lookup():
@@ -513,11 +514,3 @@ proc echo_help*(expected: seq[Tparameter_specification] = @[],
   for line in build_help(expected,
       type_of_positional_parameters, bad_prefixes, end_of_options):
     echo line
-
-
-when isMainModule:
-  # Simply tests code embedded in docs.
-  let
-    parsed_param1 = new_parsed_parameter(PK_FLOAT, 3.41)
-    parsed_param2 = new_parsed_parameter(PK_BIGGEST_INT, 2358123 * 23123)
-    #parsed_param3 = new_parsed_parameter(PK_INT, "231")
