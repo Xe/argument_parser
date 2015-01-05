@@ -1,6 +1,6 @@
 import
   bb_nake, bb_os, osproc, htmlparser, xmltree, strtabs, times,
-  argument_parser, zipfiles, sequtils
+  argument_parser, sequtils
 
 const name = "argument_parser"
 
@@ -183,31 +183,17 @@ proc clean() =
 
 
 proc dist_doc() =
-    runTask "clean"
-    runTask "doc"
-    let
-      dname = name & "-" & VERSION_STR & "-docs"
-      zname = dname & ".zip"
-    removeFile(name)
-    removeFile(zname)
-    var Z: TZipArchive
-    proc zadd(dest, src: string) =
-      echo "Adding '" & src & "' -> '" & dest & "'"
-      Z.addFile(dest, src)
-    if not Z.open(zname, fmWrite):
-      quit("Couldn't open zip " & zname)
-    try:
-      echo "OPening ", name
-      zadd(dname / name & ".html", name & ".html")
-      echo "OPening ", name
-      for rst_file, html_file in all_rst_files():
-        zadd(dname / html_file, html_file)
-      echo "OPening ", name
-      for nim_file, html_file in all_examples():
-        zadd(dname / html_file, html_file)
-    finally:
-      Z.close
-    echo "Built ", zname, " sized ", zname.getFileSize, " bytes."
+    clean()
+    doc()
+
+    let dir = dist_dir / name & "-" & VERSION_STR & "-docs"
+    dist_dir.remove_dir
+    dist_dir.create_dir
+
+    for html_file in concat(glob("*.html"), glob("docs"/"*.html")):
+      html_file.cp(dir/html_file)
+
+    dir.pack_dir
 
 
 proc build_examples() =
@@ -224,6 +210,17 @@ proc run_tests() =
   run_test_subdirectories("tests")
 
 
+proc md5() =
+  ## Inspects files in zip and generates markdown for github.
+  let templ = """
+Add the following notes to the release info:
+
+[See the changes log](https://github.com/gradha/argument_parser/blob/v$1/docs/changes.rst).
+
+Binary MD5 checksums:""" % [argument_parser.version_str]
+  show_md5_for_github(templ)
+
+
 task "babel", "Uses babel to install " & name & " locally.": babel_install()
 task "doc", "Generates HTML version of the documentation.": doc()
 task "clean", "Removes temporal files, mainly.": clean()
@@ -233,3 +230,4 @@ task "test", "Runs test suite.": run_tests()
 if sybil_witness.exists_file:
   task "check_doc", "Validates a subset of rst files.": check_docs()
   task "dist_doc", "Generates zip with documentation.": dist_doc()
+  task "md5", "Computes md5 of files found in dist subdirectory.": md5()
