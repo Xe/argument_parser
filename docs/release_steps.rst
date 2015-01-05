@@ -36,6 +36,7 @@ These are the steps to be performed for new stable releases of `argument_parser
     `https://github.com/gradha/argument_parser/blob/v0.2.0/docs/changes.rst
     <https://github.com/gradha/argument_parser/blob/v0.2.0/docs/changes.rst>`_).
 
+* Store binaries in local archive.
 * Increase version numbers, ``master`` branch gets +0.0.1:
 
   * Modify `../README.rst <../README.rst>`_.
@@ -43,8 +44,8 @@ These are the steps to be performed for new stable releases of `argument_parser
   * Modify `../argument_parser.nimble <../argument_parser.nimble>`_.
   * Add to `changes.rst <changes.rst>`_ development version with unknown date.
 
-* ``git commit -av`` into ``master`` with `Bumps version numbers for develop
-  branch. Refs #release issue`.
+* ``git commit -av`` into ``master`` with `Bumps version numbers for
+  development. Refs #release issue`.
 * Regenerate static website.
 
   * Make sure git doesn't show changes, then run ``nake web`` and review.

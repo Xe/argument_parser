@@ -81,8 +81,8 @@ command line parsing.
 Changes
 =======
 
-This is stable version 0.4.0. For a list of changes see the `docs/changes.rst
-<docs/changes.rst>`_ file.
+This is development version 0.4.1. For a list of changes see the
+`docs/changes.rst <docs/changes.rst>`_ file.
 
 
 Git branches
