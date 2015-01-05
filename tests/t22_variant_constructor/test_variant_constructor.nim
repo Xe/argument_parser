@@ -11,7 +11,10 @@ proc runtime_test() =
   try:
     let
       parsed_param3 = Tparsed_parameter(kind: PK_INT, str_val: "231")
-    doAssert false
+    when compile_option("fieldChecks"):
+      doAssert false, "Should not reach here"
+    else:
+      echo "Meh, runtime conversions are not enabled"
   except EInvalidField:
     echo "Correct exception caught"
 
@@ -28,9 +31,9 @@ const
 
 
 proc compile_test() =
-  doAssert(not compiles_bad_template)
-  doAssert(compiles_good_template)
-  doAssert(compiles_bad_runtime)
+  doAssert(not compiles_bad_template, "one")
+  doAssert(compiles_good_template, "two")
+  doAssert(compiles_bad_runtime, "three")
   echo "Compile time tests passed!"
 
 
