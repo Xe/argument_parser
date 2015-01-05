@@ -192,7 +192,7 @@ proc dist_doc() =
     clean()
     doc()
 
-    let dir = dist_dir / name & "-" & VERSION_STR & "-docs"
+    let dir = dist_dir / name & "-" & argument_parser.version_str & "-docs"
     dist_dir.remove_dir
     dist_dir.create_dir
 

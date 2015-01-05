@@ -20,7 +20,7 @@ What to do for a new public release?
 * Run ``nake dist_doc`` to generate zip package and attach to
   `https://github.com/gradha/argument_parser/releases
   <https://github.com/gradha/argument_parser/releases>`_.
-* Increase version numbers, at least maintenance (stable version + 0.1.1):
+* Increase version numbers, at least maintenance (stable version + 0.0.1):
 
   * Modify `../README.rst <../README.rst>`_.
   * Modify `../argument_parser.nim <../argument_parser.nim>`_.

@@ -13,18 +13,24 @@ import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
 
 const
-  VERSION_STR* = "0.3.1" ## Module version as a string.
-  VERSION_INT* = (major: 0, minor: 3, maintenance: 1) ## \
+  version_int* = (major: 0, minor: 3, maintenance: 1) ## \
   ## Module version as an integer tuple.
   ##
   ## Major versions changes mean a break in API backwards compatibility, either
   ## through removal of symbols or modification of their purpose.
   ##
-  ## Minor version changes can add procs (and maybe default parameters). Minor
-  ## odd versions are development/git/unstable versions. Minor even versions
-  ## are public stable releases.
+  ## Minor version changes can add procs (and maybe default parameters).
   ##
   ## Maintenance version changes mean bugfixes or non API changes.
+  ##
+  ## Odd versions are development/git/unstable versions. Even versions are
+  ## public stable releases.
+
+  version_str* = ($version_int.major & "." & $version_int.minor & "." &
+    $version_int.maintenance) ## \
+  ## Module version as a string.
+  ##
+  ## The string has the format ``digits.digits.digits``.
 
 # - Types
 
