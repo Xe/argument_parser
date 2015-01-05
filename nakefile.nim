@@ -226,6 +226,8 @@ Add the following notes to the release info:
 Binary MD5 checksums:""" % [argument_parser.version_str]
   show_md5_for_github(templ)
 
+proc web() = switch_to_gh_pages()
+proc postweb() = switch_back_from_gh_pages()
 
 task "install", "Uses nimble to install " & name & " locally.": nimble_install()
 task "i", "Alias for `install`.": nimble_install()
@@ -236,6 +238,8 @@ task "test", "Runs test suite.": run_tests()
 
 if sybil_witness.exists_file:
   task "check_doc", "Validates a subset of rst files.": check_docs()
+  task "web", "Renders gh-pages, don't use unless you are gradha.": web()
+  task "postweb", "Gradha uses this like portals, don't touch!": postweb()
   task "dist_doc", "Generates zip with documentation.": dist_doc()
   task "md5", "Computes md5 of files found in dist subdirectory.": md5()
 
