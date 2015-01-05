@@ -27,24 +27,24 @@ Installation
 Stable version
 --------------
 
-Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's babel
-package manager <https://github.com/nimrod-code/babel>`_ to install the
+Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's Nimble
+package manager <https://github.com/nim-lang/nimble>`_ to install the
 module::
 
-    $ babel update
-    $ babel install argument_parser
+    $ nimble update
+    $ nimble install argument_parser
 
 Development version
 -------------------
 
-Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's babel
-package manager <https://github.com/nimrod-code/babel>`_ to install locally the
+Install the `Nimrod <http://nimrod-lang.org>`_ compiler.  Use `Nimrod's Nimble
+package manager <https://github.com/nim-lang/nimble>`_ to install locally the
 github checkout::
 
     $ git clone https://github.com/gradha/argument_parser.git
     $ cd argument_parser
     $ git checkout develop
-    $ babel install
+    $ nimble install
 
 
 Documentation
@@ -57,7 +57,7 @@ HTML along with other documents, which are referenced from the `generated
 theindex.html <theindex.html>`_ file.  Here is an example on how to build the
 HTML on Unix::
 
-    $ cd `babel path argument_parser`
+    $ cd `nimble path argument_parser`
     $ nake doc
     $ open theindex.html
 

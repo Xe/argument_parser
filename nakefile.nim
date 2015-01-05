@@ -95,7 +95,7 @@ iterator all_rst_files(): tuple[src, dest: string] =
   for rst_name in rst_files:
     var R: tuple[src, dest: string]
     R.src = rst_name & ".rst"
-    # Ignore files if they don't exist, babel version misses some.
+    # Ignore files if they don't exist.
     if not R.src.existsFile:
       echo "Ignoring missing ", R.src
       continue
@@ -112,13 +112,16 @@ iterator all_examples(): tuple[src, dest: string] =
     yield R
 
 
-proc babel_install() =
-  direshell("babel install -y")
+proc nimble_install() =
+  direshell("nimble install -y")
   echo "Installed."
 
 
-proc doc() =
-  # Generate documentation for the nim modules.
+proc doc(open_files = false) =
+  ## Generates HTML documentation files.
+  ##
+  ## If `open_files` is true the ``open`` command will be called for each
+  ## generated HTML file.
   for module in modules:
     let
       nim_file = module & ".nim"
@@ -128,6 +131,7 @@ proc doc() =
       quit("Could not generate html doc for " & module)
     else:
       echo "Generated " & html_file
+      if open_files: shell("open " & html_file)
 
   # Generate html files from the example sources.
   #for nim_file, html_file in all_examples():
@@ -156,6 +160,7 @@ proc doc() =
     else:
       change_rst_links_to_html(html_file.extract_filename)
       echo rst_file & " -> " & html_file
+      if open_files: shell("open " & html_file)
 
     cd(prev_dir)
 
@@ -163,6 +168,7 @@ proc doc() =
   direShell nimExe, "buildIndex ."
   echo "All done"
 
+proc doco() = doc(open_files = true)
 
 proc check_docs() =
   for rst_file, html_file in all_rst_files():
@@ -221,7 +227,8 @@ Binary MD5 checksums:""" % [argument_parser.version_str]
   show_md5_for_github(templ)
 
 
-task "babel", "Uses babel to install " & name & " locally.": babel_install()
+task "install", "Uses nimble to install " & name & " locally.": nimble_install()
+task "i", "Alias for `install`.": nimble_install()
 task "doc", "Generates HTML version of the documentation.": doc()
 task "clean", "Removes temporal files, mainly.": clean()
 task "ex", "Build example binaries.": build_examples()
@@ -231,3 +238,6 @@ if sybil_witness.exists_file:
   task "check_doc", "Validates a subset of rst files.": check_docs()
   task "dist_doc", "Generates zip with documentation.": dist_doc()
   task "md5", "Computes md5 of files found in dist subdirectory.": md5()
+
+when defined(macosx):
+  task "doco", "Like 'doc' but also calls 'open' on generated HTML.": doco()
