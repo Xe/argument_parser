@@ -6,7 +6,7 @@ This is the changes log for `argument_parser
 <https://github.com/gradha/argument_parser>`_. See the `README
 <../README.rst>`_.
 
-v0.3.1 ????-??-??
+v0.4.0 2015-01-06
 -----------------
 
 * `Updated code to work with 0.9.6 nim release

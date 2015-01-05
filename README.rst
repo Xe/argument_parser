@@ -33,6 +33,7 @@ manager <https://github.com/nim-lang/nimble>`_ to install the module::
     $ nimble update
     $ nimble install argument_parser
 
+
 Development version
 -------------------
 
@@ -42,8 +43,13 @@ checkout::
 
     $ git clone https://github.com/gradha/argument_parser.git
     $ cd argument_parser
-    $ git checkout develop
-    $ nimble install
+    $ nimble install -y
+
+If you don't mind downloading the git repository every time, you can also tell
+Nimble to install the latest development version directly from git::
+
+    $ nimble update
+    $ nimble install -y argument_parser@#head
 
 
 Documentation
@@ -75,7 +81,7 @@ command line parsing.
 Changes
 =======
 
-This is version is 0.3.1. For a list of changes see the `docs/changes.rst
+This is stable version 0.4.0. For a list of changes see the `docs/changes.rst
 <docs/changes.rst>`_ file.
 
 
