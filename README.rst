@@ -11,8 +11,10 @@ provide similar functionality to prevent you from writing command line parsing
 and let you concentrate on providing the best possible experience for your
 users.
 
-An alternative to this module is the `commandeer
-<https://github.com/fenekku/commandeer>`_ module.
+Alternatives to this module are:
+
+* `commandeer <https://github.com/fenekku/commandeer>`_.
+* `docopt <https://github.com/BlaXpirit/docopt.nim/>`_.
 
 
 License
