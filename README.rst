@@ -14,7 +14,7 @@ users.
 Alternatives to this module are:
 
 * `commandeer <https://github.com/fenekku/commandeer>`_.
-* `docopt <https://github.com/BlaXpirit/docopt.nim/>`_.
+* `docopt <https://github.com/docopt/docopt.nim>`_.
 
 
 License
