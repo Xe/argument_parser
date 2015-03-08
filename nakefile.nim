@@ -73,7 +73,7 @@ proc needs_refresh(target: string, src: varargs[string]): bool =
   var TARGET_TIME: float
   try:
     TARGET_TIME = toSeconds(getLastModificationTime(target))
-  except EOS:
+  except OSError:
     return true
 
   for s in src:
@@ -81,14 +81,14 @@ proc needs_refresh(target: string, src: varargs[string]): bool =
     if srcTime > TARGET_TIME:
       return true
 
-proc nim_to_rst(nim_file, rst_file: string) =
-  ## Reads nim_file and creates into rst_file a *blocked* nim version for HTML.
-  let
-    name = nim_file.splitFile.name
-    title_symbols = repeatChar(name.len, '=')
-  var source = "$1\n$2\n$1\n.. code-block:: nimrod\n  " % [title_symbols, name]
-  source.add(readFile(nim_file).replace("\n", "\n  "))
-  writeFile(rst_file, source)
+#proc nim_to_rst(nim_file, rst_file: string) =
+#  ## Reads nim_file and creates into rst_file a *blocked* nim version for HTML.
+#  let
+#    name = nim_file.splitFile.name
+#    title_symbols = '='.repeat(name.len)
+#  var source = "$1\n$2\n$1\n.. code-block:: nimrod\n  " % [title_symbols, name]
+#  source.add(readFile(nim_file).replace("\n", "\n  "))
+#  writeFile(rst_file, source)
 
 
 iterator all_rst_files(): tuple[src, dest: string] =
@@ -102,14 +102,14 @@ iterator all_rst_files(): tuple[src, dest: string] =
     R.dest = rst_name & ".html"
     yield R
 
-iterator all_examples(): tuple[src, dest: string] =
-  # Generates .nim/.html pairs from source in the examples directory.
-  for path in "examples".walkDirRec:
-    if path.splitFile().ext != ".nim": continue
-    var R: tuple[src, dest: string]
-    R.src = path
-    R.dest = path.changeFileExt("html")
-    yield R
+#iterator all_examples(): tuple[src, dest: string] =
+#  # Generates .nim/.html pairs from source in the examples directory.
+#  for path in "examples".walkDirRec:
+#    if path.splitFile().ext != ".nim": continue
+#    var R: tuple[src, dest: string]
+#    R.src = path
+#    R.dest = path.changeFileExt("html")
+#    yield R
 
 
 proc nimble_install() =

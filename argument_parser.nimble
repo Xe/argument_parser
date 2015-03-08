@@ -25,7 +25,8 @@ nakefile.nimrod.cfg
 [Deps]
 Requires: """
 
-nake >= 1.4
 https://github.com/gradha/badger_bits.git >= 0.2.2
+nake >= 1.4
+nim >= 0.10.2
 
 """
