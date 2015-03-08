@@ -15,5 +15,3 @@ nimcache/
 /examples/ex_mkdir
 /examples/ex_wget
 /nakefile
-/tests/code_test
-/tests/help_generation
