@@ -6,7 +6,7 @@ This is the changes log for `argument_parser
 <https://github.com/gradha/argument_parser>`_. See the `README
 <../README.rst>`_.
 
-v0.4.1 ????-??-??
+v0.4.2 2015-06-28
 -----------------
 
 * `Marked project as dead

@@ -17,7 +17,7 @@ import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
 
 const
-  version_int* = (major: 0, minor: 4, maintenance: 1) ## \
+  version_int* = (major: 0, minor: 4, maintenance: 2) ## \
   ## Module version as an integer tuple.
   ##
   ## Major versions changes mean a break in API backwards compatibility, either
