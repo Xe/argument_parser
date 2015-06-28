@@ -9,6 +9,8 @@ This is the changes log for `argument_parser
 v0.4.1 ????-??-??
 -----------------
 
+* `Fixed compilation issues with nim 0.11.2
+  <https://github.com/gradha/argument_parser/issues/44>`_.
 * `Fixed Nim 0.10.2 deprecation warnings
   <https://github.com/gradha/argument_parser/issues/42>`_.
 

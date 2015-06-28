@@ -458,6 +458,10 @@ proc ascii_cmp(a, b: string): int =
   return system.cmp(toString(a), toString(b))
 
 
+when not declared(strutils.spaces):
+  template spaces(n: int): string = repeatChar(n)
+
+
 proc build_help*(expected: seq[Tparameter_specification] = @[],
     type_of_positional_parameters = PK_STRING,
     bad_prefixes = @["-", "--"], end_of_options = "--"): seq[string] =
@@ -501,7 +505,7 @@ proc build_help*(expected: seq[Tparameter_specification] = @[],
   let width = prefixes.map(proc (x: string): int = 3 + len(x)).max
 
   for line in zip(prefixes, helps):
-    result.add(line.a & repeatChar(width - line.a.len) & line.b)
+    result.add(line.a & spaces(width - line.a.len) & line.b)
 
 
 proc echo_help*(expected: seq[Tparameter_specification] = @[],

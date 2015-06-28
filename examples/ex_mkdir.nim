@@ -10,7 +10,7 @@ const
 
 
 template P(tnames: varargs[string], thelp: string, ttype = PK_EMPTY,
-    tcallback: Tparameter_callback = nil) =
+    tcallback: Tparameter_callback = nil) {.immediate.} =
   ## Helper to avoid repetition of parameter adding boilerplate.
   params.add(new_parameter_specification(ttype, custom_validator = tcallback,
     help_text = thelp, names = tnames))
