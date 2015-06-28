@@ -8,6 +8,10 @@
 ##
 ## Source code for this module can be found at
 ## https://github.com/gradha/argument_parser.
+##
+## **DEATH NOTICE: This project has been marked as dead**. Please see the
+## notice at https://github.com/gradha/argument_parser for further information.
+
 
 import os, strutils, tables, math, parseutils, sequtils, sets, algorithm,
   unicode
