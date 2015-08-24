@@ -16,14 +16,8 @@ Alternatives to this module are:
 * `commandeer <https://github.com/fenekku/commandeer>`_.
 * `docopt <https://github.com/docopt/docopt.nim>`_.
 
-**DEATH NOTICE: This project has been marked as dead**. Deprecation implies
-there is a migration path to an improved or fixed version, but there won't be.
-Sometime around June 2016 this repository will be removed. If you are using
-this module for something you are advised to fork it and make it yours or use
-one of the alternatives mentioned above. Fixes to the existing code may be
-accepted depending on the severity, but this is a dead end anyway, so you
-should better work on getting away.
-
+This project was originally by gradha, but I (Xe) have taken it over as gradha
+had marked this project dead.
 
 License
 =======
